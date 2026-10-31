@@ -1,10 +1,10 @@
 /* Service worker: caches the app shell so the app opens instantly and works as an installed app.
    Data calls to Apps Script are never cached. Bump VERSION to force an update. */
-const VERSION = 'v2';
+const VERSION = 'v5';
 const SHELL = `shell-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
-const SHELL_FILES = ['/', '/index.html', '/manifest.webmanifest',
-  '/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png'];
+const SHELL_FILES = ['./', 'index.html', 'manifest.webmanifest', 'favicon.ico',
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(SHELL).then(c => c.addAll(SHELL_FILES)).then(() => self.skipWaiting()));
@@ -30,9 +30,9 @@ self.addEventListener('fetch', e => {
     e.respondWith(
       fetch(req).then(res => {
         const copy = res.clone();
-        caches.open(SHELL).then(c => c.put('/index.html', copy));
+        caches.open(SHELL).then(c => c.put('index.html', copy));
         return res;
-      }).catch(() => caches.match('/index.html'))
+      }).catch(() => caches.match('index.html'))
     );
     return;
   }
