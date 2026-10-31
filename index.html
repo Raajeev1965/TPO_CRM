@@ -2094,14 +2094,30 @@
 
   const API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'; // ends with /exec
 
+  function explain(err, status) {
+    if (API_URL.indexOf('PASTE_YOUR') === 0) {
+      return 'API_URL is not set in index.html. Paste your Apps Script web app URL (ending in /exec).';
+    }
+    if (err && err.name === 'AbortError') return 'The server took too long to respond (30s). Try again.';
+    if (err && err.code === 'NOT_JSON') {
+      return 'The server did not return data. In Apps Script, deploy a NEW VERSION of the web app with "Who has access: Anyone", then reload.';
+    }
+    return 'Could not reach the server (' + (err && err.message || 'network error') + '). Check internet and that the web app is deployed with access set to "Anyone".';
+  }
+
   function call(fn, args, ok, fail) {
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, 30000);
     fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids a CORS preflight
-      body: JSON.stringify({ fn: fn, args: args, token: localStorage.getItem('hrcrm_token') || '' })
+      body: JSON.stringify({ fn: fn, args: args, token: localStorage.getItem('hrcrm_token') || '' }),
+      signal: ctrl.signal
     })
-      .then(function (r) { return r.json(); })
-      .then(function (res) {
+      .then(function (r) { return r.text(); })
+      .then(function (txt) {
+        var res;
+        try { res = JSON.parse(txt); } catch (e) { var er = new Error('not json'); er.code = 'NOT_JSON'; throw er; }
         if (res.error === 'unauthorized') {
           Object.keys(localStorage).forEach(function (k) { if (k.indexOf('hrcrm_') === 0) localStorage.removeItem(k); });
           location.reload();
@@ -2114,8 +2130,12 @@
         if (ok) ok(res.result);
       })
       .catch(function (err) {
-        if (fail) fail(err); else console.error(fn, err);
-      });
+        console.error('[API]', fn, err);
+        var msg = explain(err);
+        if (fail) fail(err);
+        else if (fn === 'authenticate' || !window.__apiErrShown) { window.__apiErrShown = true; alert(msg); setTimeout(function () { window.__apiErrShown = false; }, 5000); }
+      })
+      .finally(function () { clearTimeout(timer); });
   }
 
   function make(ok, fail) {

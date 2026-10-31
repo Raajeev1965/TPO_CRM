@@ -1,6 +1,6 @@
 /* Service worker: caches the app shell so the app opens instantly and works as an installed app.
    Data calls to Apps Script are never cached. Bump VERSION to force an update. */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL = `shell-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 const SHELL_FILES = ['/', '/index.html', '/manifest.webmanifest',
