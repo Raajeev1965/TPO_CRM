@@ -1,0 +1,3974 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <base target="_top">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link
+    rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2351e2f5'/%3E%3Cstop offset='100%25' stop-color='%239df9ef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='42' font-family='Arial' font-weight='800' font-size='26' fill='%230f172a' text-anchor='middle'%3EGG%3C/text%3E%3C/svg%3E"
+  >
+
+  <style>
+
+    :root{
+      --brand:#111827;
+      --brand-soft:#374151;
+      --accent:#2563eb;
+      --border:#e5e7eb;
+      --muted:#6b7280;
+      --bg:#f6f7fb;
+
+      /* BRAND PALETTE */
+      --c-blue:#51e2f5;
+      --c-bluegreen:#9df9ef;
+      --c-yellow:#edf756;
+      --c-pink:#ffa8b6;
+      --c-sand:#a28089;
+
+      --font-heading:'Montserrat',Arial,sans-serif;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      font-family:'Montserrat',Arial,sans-serif;
+      color:#1f2937;
+    }
+
+    /* LOGIN SCREEN */
+
+    #loginScreen{
+      position:fixed;
+      inset:0;
+      background:linear-gradient(135deg, var(--c-bluegreen) 0%, var(--c-blue) 45%, var(--c-pink) 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+    }
+
+    .login-card{
+      width:380px;
+      background:white;
+      padding:36px;
+      border-radius:22px;
+      border:1px solid var(--border);
+      box-shadow:0 20px 45px rgba(17,24,39,0.08);
+    }
+
+    .login-card h3{
+      font-family:var(--font-heading);
+      font-weight:800;
+      letter-spacing:-0.5px;
+    }
+
+    .brand-badge{
+      width:48px;
+      height:48px;
+      border-radius:14px;
+      background:linear-gradient(135deg, var(--c-blue), var(--c-bluegreen));
+      color:#0f172a;
+      font-family:var(--font-heading);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      margin:0 auto 16px auto;
+      font-size:18px;
+    }
+
+    /* MAIN APP */
+
+    #mainApp{
+      display:none;
+    }
+
+    .navbar{
+      background:rgba(255,255,255,0.95);
+      backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--border);
+      position:relative;
+    }
+
+    .navbar::after{
+      content:'';
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:-3px;
+      height:3px;
+      background:linear-gradient(90deg, var(--c-blue), var(--c-bluegreen), var(--c-yellow), var(--c-pink), var(--c-sand));
+    }
+
+    .navbar .fw-bold{
+      font-family:var(--font-heading);
+      letter-spacing:-0.3px;
+      font-size:17px;
+    }
+
+    .bell-btn{
+      position:relative;
+      width:38px;
+      height:38px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:white;
+      color:#374151;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:all 0.15s ease;
+    }
+
+    .bell-btn:hover{
+      background:#f9fafb;
+      border-color:#9ca3af;
+    }
+
+    .activity-badge{
+      position:absolute;
+      top:-6px;
+      right:-6px;
+      min-width:18px;
+      height:18px;
+      padding:0 4px;
+      border-radius:999px;
+      background:#dc2626;
+      color:white;
+      font-size:10.5px;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      line-height:1;
+      border:2px solid white;
+    }
+
+    .activity-item{
+      display:flex;
+      gap:12px;
+      padding:12px 4px;
+      border-bottom:1px solid #f1f5f9;
+    }
+
+    .activity-item:last-child{
+      border-bottom:none;
+    }
+
+    .activity-icon{
+      width:34px;
+      height:34px;
+      min-width:34px;
+      border-radius:10px;
+      background:#eef2ff;
+      color:#3730a3;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:15px;
+    }
+
+    .activity-body{
+      flex:1;
+      min-width:0;
+    }
+
+    .activity-action{
+      font-weight:700;
+      font-size:13.5px;
+      color:#111827;
+    }
+
+    .activity-details{
+      font-size:13px;
+      color:#4b5563;
+      margin-top:1px;
+    }
+
+    .activity-meta{
+      font-size:11.5px;
+      color:var(--muted);
+      margin-top:3px;
+    }
+
+    .main-container{
+      padding:28px;
+      max-width:1400px;
+      margin:0 auto;
+    }
+
+    /* CARDS */
+
+    .card-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
+      gap:18px;
+    }
+
+    .crm-card{
+      background:white;
+      border:1px solid var(--border);
+      border-top:4px solid transparent;
+      border-radius:18px;
+      padding:20px;
+      cursor:pointer;
+      transition:all 0.2s ease;
+      box-shadow:0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .crm-card:hover{
+      transform:translateY(-3px);
+      box-shadow:0 12px 26px rgba(17,24,39,0.08);
+      border-color:#d1d5db;
+    }
+
+    /* Alternate a fresh, clearly visible color across cards (skipped for priority/overdue, which keep their status color) */
+
+    .card-grid .crm-card:nth-child(5n+1):not(.priority):not(.overdue){
+      border-top-color: var(--c-blue);
+      background: rgba(81,226,245,0.14);
+    }
+
+    .card-grid .crm-card:nth-child(5n+2):not(.priority):not(.overdue){
+      border-top-color: var(--c-bluegreen);
+      background: rgba(157,249,239,0.20);
+    }
+
+    .card-grid .crm-card:nth-child(5n+3):not(.priority):not(.overdue){
+      border-top-color: var(--c-yellow);
+      background: rgba(237,247,86,0.18);
+    }
+
+    .card-grid .crm-card:nth-child(5n+4):not(.priority):not(.overdue){
+      border-top-color: var(--c-pink);
+      background: rgba(255,168,182,0.18);
+    }
+
+    .card-grid .crm-card:nth-child(5n):not(.priority):not(.overdue){
+      border-top-color: var(--c-sand);
+      background: rgba(162,128,137,0.14);
+    }
+
+    .priority{
+      border-left:5px solid #f59e0b;
+      background:#fffaf3;
+    }
+
+    .overdue{
+      border-left:5px solid #ef4444;
+      background:#fff5f5;
+    }
+
+    .avatar-circle{
+      width:38px;
+      height:38px;
+      min-width:38px;
+      border-radius:11px;
+      background:#eef2ff;
+      color:#3730a3;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      font-size:14px;
+    }
+
+    .designation-tag{
+      font-size:11px;
+      color:var(--accent);
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:0.3px;
+    }
+
+    .company-name{
+      font-family:var(--font-heading);
+      font-size:18px;
+      font-weight:800;
+      color:#111827;
+      letter-spacing:-0.3px;
+      line-height:1.25;
+    }
+
+    .hr-name-sub{
+      font-size:13.5px;
+      color:#6b7280;
+      font-weight:600;
+      margin-top:3px;
+    }
+
+    .status-chip{
+      background:#f3f4f6;
+      color:#374151;
+      padding:5px 12px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:600;
+      border:1px solid #e5e7eb;
+      white-space:nowrap;
+    }
+
+    .status-chip.st-interested{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+    .status-chip.st-mailed{ background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+    .status-chip.st-notinterested{ background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
+    .status-chip.st-callback{ background:#fffbeb; color:#92400e; border-color:#fde68a; }
+
+    .delete-card-btn{
+      border:1px solid #fecaca;
+      border-radius:8px;
+      background:#fef2f2;
+      color:#b91c1c;
+      width:26px;
+      height:26px;
+      min-width:26px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      opacity:0.35;
+      transition:all 0.15s ease;
+    }
+
+    .crm-card:hover .delete-card-btn{
+      opacity:1;
+    }
+
+    .delete-card-btn:hover{
+      background:#fee2e2;
+      border-color:#fca5a5;
+    }
+
+    .minimal-btn{
+      border:none;
+      border-radius:10px;
+      padding:8px;
+      width:100%;
+      font-size:12px;
+      font-weight:600;
+      transition:0.2s;
+    }
+
+    .btn-green{
+      background:#ecfdf5;
+      color:#065f46;
+    }
+
+    .btn-green:hover{
+      background:#d1fae5;
+    }
+
+    .btn-blue{
+      background:#eff6ff;
+      color:#1d4ed8;
+    }
+
+    .btn-blue:hover{
+      background:#dbeafe;
+    }
+
+    .btn-red{
+      background:#fef2f2;
+      color:#b91c1c;
+    }
+
+    .btn-red:hover{
+      background:#fee2e2;
+    }
+
+    .dark-btn{
+      background:var(--brand);
+      color:white;
+      border:none;
+      border-radius:12px;
+      padding:10px 16px;
+      font-weight:600;
+      transition:0.2s;
+    }
+
+    .dark-btn:hover{
+      background:#1f2937;
+    }
+
+    .outline-btn{
+      background:white;
+      color:var(--brand);
+      border:1px solid #d1d5db;
+      border-radius:12px;
+      padding:9px 16px;
+      font-weight:600;
+      font-size:13px;
+      transition:0.2s;
+    }
+
+    .outline-btn:hover{
+      background:#f9fafb;
+      border-color:#9ca3af;
+    }
+
+    .outline-btn.active-edit{
+      background:#111827;
+      color:white;
+      border-color:#111827;
+    }
+
+    /* CALENDAR (top-left navbar icon + Events Calendar modal) */
+
+    .calendar-btn{
+      font-size:17px;
+    }
+
+    .reminder-banner{
+      display:none;
+      max-width:1400px;
+      margin:14px auto 0 auto;
+      padding:0 28px;
+    }
+
+    .reminder-banner-inner{
+      background:#fffbeb;
+      border:1px solid #fde68a;
+      color:#92400e;
+      border-radius:14px;
+      padding:12px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      font-size:13.5px;
+      font-weight:600;
+    }
+
+    .reminder-banner-close{
+      background:none;
+      border:none;
+      color:#92400e;
+      font-size:18px;
+      line-height:1;
+      cursor:pointer;
+      opacity:0.6;
+    }
+
+    .reminder-banner-close:hover{
+      opacity:1;
+    }
+
+    .cal-month-label{
+      font-family:var(--font-heading);
+      font-weight:800;
+      font-size:16px;
+      color:#111827;
+    }
+
+    .cal-legend{
+      display:flex;
+      gap:16px;
+      flex-wrap:wrap;
+      font-size:11.5px;
+      color:var(--muted);
+      font-weight:600;
+    }
+
+    .cal-legend span{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+    }
+
+    .cal-dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      display:inline-block;
+    }
+
+    .cal-dot-event{ background:#2563eb; }
+    .cal-dot-cancelled{ background:#9ca3af; }
+    .cal-dot-holiday{ background:#dc2626; }
+
+    .cal-weekdays{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      text-align:center;
+      font-size:11px;
+      font-weight:700;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:0.3px;
+      margin-bottom:6px;
+    }
+
+    .cal-grid{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:6px;
+    }
+
+    .cal-cell{
+      min-height:64px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      padding:6px;
+      cursor:pointer;
+      transition:all 0.15s ease;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      background:white;
+    }
+
+    .cal-cell:hover{
+      border-color:#9ca3af;
+      background:#f9fafb;
+    }
+
+    .cal-cell.cal-empty{
+      background:transparent;
+      border:none;
+      cursor:default;
+    }
+
+    .cal-cell.cal-today{
+      border-color:var(--accent);
+      box-shadow:0 0 0 1px var(--accent) inset;
+    }
+
+    .cal-cell.cal-selected{
+      background:#eff6ff;
+      border-color:var(--accent);
+    }
+
+    .cal-cell.cal-has-holiday{
+      background:#fef2f2;
+    }
+
+    .cal-day-number{
+      font-size:12.5px;
+      font-weight:700;
+      color:#374151;
+    }
+
+    .cal-cell.cal-today .cal-day-number{
+      color:var(--accent);
+    }
+
+    .cal-dots{
+      display:flex;
+      gap:3px;
+      flex-wrap:wrap;
+      margin-top:auto;
+    }
+
+    .cal-day-panel{
+      border-top:1px solid var(--border);
+      padding-top:14px;
+    }
+
+    .cal-day-panel-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:10px;
+    }
+
+    .cal-day-panel-title{
+      font-weight:700;
+      font-size:14px;
+      color:#111827;
+    }
+
+    .cal-event-item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      margin-bottom:8px;
+      cursor:pointer;
+      background:white;
+      transition:all 0.15s ease;
+    }
+
+    .cal-event-item:hover{
+      border-color:#9ca3af;
+      background:#f9fafb;
+    }
+
+    .cal-event-item.cal-event-cancelled{
+      opacity:0.55;
+    }
+
+    .cal-event-item.cal-event-cancelled .cal-event-name{
+      text-decoration:line-through;
+    }
+
+    .cal-event-item.cal-holiday-item{
+      cursor:default;
+      background:#fef2f2;
+      border-color:#fecaca;
+    }
+
+    .cal-event-item.cal-holiday-item:hover{
+      background:#fef2f2;
+      border-color:#fecaca;
+    }
+
+    .cal-event-name{
+      font-weight:700;
+      font-size:13.5px;
+      color:#111827;
+    }
+
+    .cal-event-sub{
+      font-size:11.5px;
+      color:var(--muted);
+      margin-top:1px;
+    }
+
+    .branch-chip-group{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .branch-chip{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:5px 12px;
+      font-size:12.5px;
+      font-weight:600;
+      color:#374151;
+      cursor:pointer;
+      user-select:none;
+      transition:all 0.15s ease;
+    }
+
+    .branch-chip input{
+      margin:0;
+    }
+
+    .branch-chip.checked{
+      background:#eff6ff;
+      border-color:#93c5fd;
+      color:#1d4ed8;
+    }
+
+    /* QUICK-ACCESS ICON BUTTON in the HR Details modal header — opens the
+       same floating "Last Remark" panel used on the cards, beside
+       the modal itself */
+
+    .modal-quick-btn{
+      background:white;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      width:36px;
+      height:36px;
+      font-size:16px;
+      line-height:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:0.2s;
+    }
+
+    .modal-quick-btn:hover{
+      background:#f9fafb;
+      border-color:#9ca3af;
+    }
+
+    .form-control{
+      border-radius:12px;
+      border:1px solid #d1d5db;
+      padding:11px;
+    }
+
+    .form-control:focus{
+      box-shadow:0 0 0 3px rgba(37,99,235,0.1);
+      border-color:var(--accent);
+    }
+
+    .form-control[readonly]{
+      background:#f9fafb;
+      color:#374151;
+    }
+
+    .modal-content{
+      border:none;
+      border-radius:22px;
+      box-shadow:0 25px 60px rgba(17,24,39,0.2);
+    }
+
+    .modal-header, .modal-footer{
+      border-color:#f1f5f9 !important;
+    }
+
+    .section-title{
+      font-family:var(--font-heading);
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:0.4px;
+      margin-bottom:14px;
+    }
+
+    .legend-hint{
+      font-size:11px;
+      font-weight:500;
+      text-transform:none;
+      letter-spacing:normal;
+      color:#9ca3af;
+    }
+
+    .contact-info{
+      color:#4b5563;
+      line-height:1.9;
+      font-size:14px;
+    }
+
+    .contact-link{
+      color:#4b5563;
+      text-decoration:none;
+      border-bottom:1px dashed #c7ccd3;
+      transition:color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .contact-link:hover{
+      color:var(--accent);
+      border-color:var(--accent);
+    }
+
+    .phone-link{
+      font-size:17px;
+      font-weight:700;
+      color:#111827;
+      display:inline-block;
+      padding:2px 0;
+    }
+
+    .phone-link:hover{
+      color:var(--accent);
+    }
+
+    .next-call{
+      background:#f9fafb;
+      border:1px solid #f1f5f9;
+      border-radius:12px;
+      padding:10px;
+      margin-top:14px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .first-call-row{
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:12px;
+      padding-top:10px;
+      border-top:1px dashed #e5e7eb;
+      flex-wrap:wrap;
+    }
+
+    /* "LAST REMARK" CARD BUTTON — pill-shaped toggle, blue themed so it
+       stands out clearly at a glance */
+
+    .remark-toggle-btn{
+      border:1px solid #bfdbfe;
+      background:#eff6ff;
+      color:#1e40af;
+      border-radius:999px;
+      padding:6px 14px;
+      font-size:12px;
+      font-weight:700;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:5px;
+      transition:all 0.15s ease;
+    }
+
+    .remark-toggle-btn:hover{
+      background:#dbeafe;
+    }
+
+    .remark-toggle-btn.has-remark{
+      background:#2563eb;
+      border-color:#2563eb;
+      color:white;
+    }
+
+    .modal .form-check-input{
+      cursor:pointer;
+      width:38px;
+      height:20px;
+    }
+
+    .modal .form-check-input:checked{
+      background-color:#f59e0b;
+      border-color:#f59e0b;
+    }
+
+    /* FLOATING SCRIPT / LAST REMARK PANELS — true overlays that open beside
+       whatever they were triggered from (a card or the HR Details modal),
+       positioned via JS, completely outside the normal page flow. Sized to
+       roughly match the HR Details modal for readability. */
+
+    .floating-script-panel{
+      position:absolute;
+      z-index:1060;
+      width:440px;
+      max-width:calc(100vw - 24px);
+      background:#fffbeb;
+      border:1px solid #fde68a;
+      border-top:4px solid #f59e0b;
+      border-radius:20px;
+      padding:22px;
+      box-shadow:0 20px 45px rgba(17,24,39,0.22);
+      animation:scriptFadeIn 0.15s ease;
+    }
+
+    .floating-script-panel.mobile-sheet{
+      position:fixed;
+      left:10px;
+      right:10px;
+      bottom:10px;
+      top:auto;
+      width:auto;
+      max-height:80vh;
+      overflow-y:auto;
+    }
+
+
+    @keyframes scriptFadeIn{
+      from{ opacity:0; transform:translateY(-4px); }
+      to{ opacity:1; transform:translateY(0); }
+    }
+
+    .call-script-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
+    }
+
+    .call-script-title{
+      font-size:16px;
+      font-weight:700;
+      color:#92400e;
+    }
+
+    .panel-header-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-shrink:0;
+    }
+
+    .panel-edit-btn{
+      border:1px solid #fde68a;
+      background:white;
+      color:#92400e;
+      border-radius:10px;
+      padding:6px 16px;
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+      transition:0.15s;
+    }
+
+    .panel-edit-btn:hover{
+      background:#fef3c7;
+    }
+
+    .floating-remark-panel .panel-edit-btn{
+      border-color:#bfdbfe;
+      color:#1e40af;
+    }
+
+    .floating-remark-panel .panel-edit-btn:hover{
+      background:#dbeafe;
+    }
+
+    .script-close-btn{
+      border:none;
+      background:transparent;
+      color:#92400e;
+      opacity:0.6;
+      font-size:24px;
+      line-height:1;
+      cursor:pointer;
+      padding:0 4px;
+    }
+
+    .script-close-btn:hover{
+      opacity:1;
+    }
+
+    .call-script-toolbar{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      margin-bottom:10px;
+    }
+
+    .script-tool-btn{
+      border:1px solid #fde68a;
+      background:white;
+      color:#92400e;
+      border-radius:8px;
+      width:32px;
+      height:32px;
+      font-size:14px;
+      font-weight:700;
+      line-height:1;
+      cursor:pointer;
+    }
+
+    .script-tool-btn:hover{
+      background:#fef3c7;
+    }
+
+    .floating-remark-panel .script-tool-btn{
+      border-color:#bfdbfe;
+      color:#1e40af;
+    }
+
+    .floating-remark-panel .script-tool-btn:hover{
+      background:#dbeafe;
+    }
+
+    .script-editable{
+      min-height:130px;
+      max-height:360px;
+      overflow-y:auto;
+      font-size:15px;
+      color:#78350f;
+      line-height:1.65;
+      outline:none;
+      padding:14px 16px;
+      background:white;
+      border:1px solid #fde68a;
+      border-radius:12px;
+    }
+
+    .script-editable[contenteditable="true"]{
+      box-shadow:0 0 0 3px rgba(245,158,11,0.15);
+      border-color:#f59e0b;
+    }
+
+    .script-editable:empty:before{
+      content: attr(data-placeholder);
+      color:#b45309;
+      opacity:0.6;
+    }
+
+    .script-editable ul{
+      padding-left:20px;
+      margin:4px 0;
+    }
+
+    .script-editable b, .script-editable strong{
+      color:#78350f;
+    }
+
+    .floating-remark-panel .script-editable{
+      color:#1e3a8a;
+      border-color:#bfdbfe;
+    }
+
+    .floating-remark-panel .script-editable[contenteditable="true"]{
+      box-shadow:0 0 0 3px rgba(37,99,235,0.15);
+      border-color:#2563eb;
+    }
+
+    .floating-remark-panel .script-editable:empty:before{
+      color:#3b82f6;
+    }
+
+    .floating-remark-panel .script-editable b, .floating-remark-panel .script-editable strong{
+      color:#1e3a8a;
+    }
+
+    /* =========================
+       DRAG-TO-RESIZE COMMON SCRIPT POPUP
+       Lets the user grab any corner/edge of the Common Call Script
+       window and stretch it. The script text scales up/down with it
+       (see applyScale() in the resize JS below).
+    ========================= */
+
+    #commonScriptModal .modal-dialog{
+      max-width:none;
+      width:-moz-fit-content;
+      width:fit-content;
+      margin-left:auto;
+      margin-right:auto;
+    }
+
+    #commonScriptModal .modal-content{
+      position:relative;
+      width:600px;
+      height:520px;
+      max-width:96vw;
+      max-height:92vh;
+      min-width:340px;
+      min-height:300px;
+      display:flex;
+      flex-direction:column;
+    }
+
+    #commonScriptModal .modal-body{
+      flex:1 1 auto;
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+    }
+
+    #commonScriptModal .script-editable{
+      flex:1 1 auto;
+      max-height:none;
+    }
+
+    .resize-handle{
+      position:absolute;
+      z-index:20;
+      touch-action:none;
+    }
+
+    .resize-handle.edge-n,
+    .resize-handle.edge-s{
+      left:14px;
+      right:14px;
+      height:10px;
+      cursor:ns-resize;
+    }
+
+    .resize-handle.edge-n{ top:-2px; }
+    .resize-handle.edge-s{ bottom:-2px; }
+
+    .resize-handle.edge-e,
+    .resize-handle.edge-w{
+      top:14px;
+      bottom:14px;
+      width:10px;
+      cursor:ew-resize;
+    }
+
+    .resize-handle.edge-e{ right:-2px; }
+    .resize-handle.edge-w{ left:-2px; }
+
+    .resize-handle.corner{
+      width:16px;
+      height:16px;
+    }
+
+    .resize-handle.corner-nw{ top:-2px; left:-2px; cursor:nwse-resize; }
+    .resize-handle.corner-ne{ top:-2px; right:-2px; cursor:nesw-resize; }
+    .resize-handle.corner-sw{ bottom:-2px; left:-2px; cursor:nesw-resize; }
+    .resize-handle.corner-se{ bottom:-2px; right:-2px; cursor:nwse-resize; }
+
+    .field-label{
+      font-size:12px;
+      font-weight:600;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:0.3px;
+    }
+
+    .last-remark-box{
+      background:#f9fafb;
+      border:1px solid #f1f5f9;
+      border-radius:12px;
+      padding:12px 14px;
+      font-size:13.5px;
+      color:#374151;
+      line-height:1.6;
+      min-height:44px;
+    }
+
+    .last-remark-box.empty{
+      color:#9ca3af;
+      font-style:italic;
+    }
+
+    /* ACCESSIBILITY: visible focus rings for keyboard navigation */
+
+    button:focus-visible,
+    .crm-card:focus-visible,
+    .deck-tile:focus-visible,
+    .form-control:focus-visible{
+      outline:3px solid var(--c-blue);
+      outline-offset:2px;
+    }
+
+    /* EMPTY / SKELETON STATES */
+
+    .empty-state{
+      grid-column:1 / -1;
+      text-align:center;
+      padding:36px 20px;
+      color:var(--muted);
+      font-size:14px;
+      background:white;
+      border:1px dashed var(--border);
+      border-radius:16px;
+    }
+
+    .empty-state .empty-emoji{
+      font-size:26px;
+      display:block;
+      margin-bottom:8px;
+    }
+
+    @keyframes shimmer{
+      0%{ background-position:-200px 0; }
+      100%{ background-position:200px 0; }
+    }
+
+    .skeleton-card{
+      height:190px;
+      border-radius:18px;
+      background:linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%);
+      background-size:400px 100%;
+      animation:shimmer 1.4s ease infinite;
+    }
+
+    /* ALPHABET DECKS */
+
+    .deck-row{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(84px,1fr));
+      gap:12px;
+    }
+
+    .deck-tile{
+      background:white;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px 8px;
+      text-align:center;
+      cursor:pointer;
+      transition:all 0.18s ease;
+      box-shadow:0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .deck-tile:hover{
+      transform:translateY(-2px);
+      box-shadow:0 8px 18px rgba(17,24,39,0.07);
+      border-color:#d1d5db;
+    }
+
+    .deck-tile.active{
+      background:var(--c-blue);
+      border-color:var(--c-blue);
+    }
+
+    .deck-letter{
+      font-family:var(--font-heading);
+      font-size:20px;
+      font-weight:800;
+      color:#111827;
+      letter-spacing:-0.5px;
+    }
+
+    .deck-tile.active .deck-letter{
+      color:#0f172a;
+    }
+
+    .deck-count{
+      font-size:11px;
+      color:var(--muted);
+      font-weight:600;
+      margin-top:2px;
+    }
+
+    .deck-tile.active .deck-count{
+      color:#0f172a;
+      opacity:0.7;
+    }
+
+    .deck-hint{
+      color:var(--muted);
+      font-size:13.5px;
+      padding:18px 4px;
+    }
+
+    .deck-content-title{
+      font-size:13px;
+      font-weight:700;
+      color:var(--brand-soft);
+      margin:22px 0 12px 0;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .deck-content-title .badge-count{
+      background:#eef2ff;
+      color:#3730a3;
+      border-radius:999px;
+      padding:2px 10px;
+      font-size:11px;
+    }
+
+    /* REMARKS HISTORY */
+
+    .remark-item{
+      background:#f9fafb;
+      border:1px solid #f1f5f9;
+      border-radius:12px;
+      padding:10px 12px;
+      margin-bottom:8px;
+    }
+
+    .remark-item-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:4px;
+    }
+
+    .remark-time{
+      font-size:11px;
+      color:var(--muted);
+      font-weight:600;
+    }
+
+    .remark-edit-btn{
+      border:none;
+      background:transparent;
+      color:var(--accent);
+      font-size:11.5px;
+      font-weight:600;
+      padding:0;
+      cursor:pointer;
+    }
+
+    .remark-edit-btn:hover{
+      text-decoration:underline;
+    }
+
+    .remark-text{
+      font-size:13.5px;
+      color:#374151;
+      line-height:1.55;
+      white-space:pre-wrap;
+    }
+
+    .remark-save-btn, .remark-cancel-btn{
+      border:none;
+      border-radius:8px;
+      padding:5px 12px;
+      font-size:11px;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    .remark-save-btn{
+      background:#111827;
+      color:white;
+    }
+
+    .remark-cancel-btn{
+      background:#f3f4f6;
+      color:#374151;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<!-- LOGIN -->
+
+<div id="loginScreen">
+
+  <div class="login-card">
+
+    <div class="brand-badge">
+      HR
+    </div>
+
+    <h3 class="text-center mb-4">
+      Gyan Ganga Placement Cell - CRM
+    </h3>
+
+    <input
+      type="email"
+      id="email"
+      class="form-control mb-3"
+      placeholder="Email"
+      onkeydown="if(event.key==='Enter'){ event.preventDefault(); login(); }"
+    >
+
+    <input
+      type="password"
+      id="password"
+      class="form-control mb-4"
+      placeholder="Password"
+      onkeydown="if(event.key==='Enter'){ event.preventDefault(); login(); }"
+    >
+
+    <button
+      class="dark-btn w-100"
+      onclick="login()"
+    >
+      Login
+    </button>
+
+  </div>
+
+</div>
+
+<!-- MAIN APP -->
+
+<div id="mainApp">
+
+  <!-- NAVBAR -->
+
+  <nav class="navbar px-4 py-3 d-flex justify-content-between align-items-center">
+
+    <div class="d-flex align-items-center gap-2">
+
+      <button
+        class="bell-btn calendar-btn"
+        onclick="openCalendarPanel()"
+        title="Events calendar"
+      >
+        📅
+        <span id="calendarBadge" class="activity-badge" style="display:none;">0</span>
+      </button>
+
+      <div class="fw-bold">
+        HR CRM Dashboard
+      </div>
+
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+
+      <button
+        class="bell-btn"
+        onclick="openActivityPanel()"
+        title="Recent activity"
+      >
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span id="activityBadge" class="activity-badge" style="display:none;">0</span>
+      </button>
+
+      <button
+        class="btn btn-dark btn-sm"
+        onclick="logout()"
+      >
+        Logout
+      </button>
+
+    </div>
+
+  </nav>
+
+  <!-- REMINDER BANNER (events due in the next 2 days) -->
+
+  <div id="reminderBanner" class="reminder-banner">
+    <div class="reminder-banner-inner">
+      <span id="reminderBannerText">🔔 You have upcoming events.</span>
+      <div class="d-flex align-items-center gap-2">
+        <button class="outline-btn" style="padding:6px 12px; font-size:12px;" onclick="openCalendarPanel()">View</button>
+        <button class="reminder-banner-close" onclick="dismissReminderBanner()" title="Dismiss">&times;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+
+  <div class="main-container">
+
+    <div class="row mb-4">
+
+      <div class="col-md-9 mb-2">
+
+        <input
+          type="text"
+          id="search"
+          class="form-control"
+          placeholder="Search HR or Company"
+          onkeyup="filterCards()"
+        >
+
+      </div>
+
+      <div class="col-md-3 mb-2 d-flex gap-2">
+
+        <button
+          class="dark-btn flex-fill"
+          onclick="showAddModal()"
+        >
+          + Add Lead
+        </button>
+
+        <button
+          class="outline-btn"
+          onclick="openCommonScriptModal()"
+          title="Common call script"
+        >
+          📝 Script
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- PRIORITY -->
+
+    <div class="section-title d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <span>Priority / Overdue</span>
+      <button
+        class="dark-btn"
+        id="postponeAllBtn"
+        onclick="postponeAllPriority()"
+        style="display:none;"
+      >
+        ⏩ Postpone All +1 Day
+      </button>
+    </div>
+
+    <div
+      id="priorityGrid"
+      class="card-grid mb-5"
+    ></div>
+
+    <!-- ALL CONTACTS -->
+
+    <div class="section-title d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <span>All Contacts</span>
+      <span class="legend-hint">Card color = visual variety &nbsp;•&nbsp; Chip color = status</span>
+    </div>
+
+    <div
+      id="deckRow"
+      class="deck-row mb-2"
+    ></div>
+
+    <div id="deckContentTitle"></div>
+
+    <div
+      id="allGrid"
+      class="card-grid"
+    ></div>
+
+  </div>
+
+</div>
+
+<!-- DETAILS MODAL -->
+
+<div
+  class="modal fade"
+  id="detailsModal"
+  tabindex="-1"
+>
+
+  <div class="modal-dialog modal-dialog-centered">
+
+    <div class="modal-content">
+
+      <div class="modal-header border-0">
+
+        <h5 class="modal-title">
+          HR Details
+        </h5>
+
+        <div class="d-flex align-items-center gap-2">
+
+          <button
+            type="button"
+            class="modal-quick-btn"
+            title="Open Last Remark panel"
+            onclick="openRemarkPanel(document.getElementById('rowId').value, this)"
+          >
+            💬
+          </button>
+
+          <button
+            id="editBtn"
+            class="outline-btn me-2"
+            onclick="toggleEdit()"
+          >
+            Edit
+          </button>
+
+          <button
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
+
+        </div>
+
+      </div>
+
+      <div class="modal-body">
+
+        <input type="hidden" id="rowId">
+
+        <div class="mb-3">
+          <label class="field-label">HR Name</label>
+          <input type="text" id="dName" class="form-control" readonly>
+        </div>
+
+        <div class="mb-3">
+          <label class="field-label">Designation</label>
+          <input type="text" id="dDesignation" class="form-control" readonly placeholder="e.g. Talent Acquisition Manager">
+        </div>
+
+        <div class="mb-3">
+          <label class="field-label">Company</label>
+          <input type="text" id="dCompany" class="form-control" readonly>
+        </div>
+
+        <div class="mb-3">
+          <label class="field-label">Phone</label>
+          <input type="text" id="dPhone" class="form-control" readonly>
+        </div>
+
+        <div class="mb-3">
+          <label class="field-label">Email</label>
+          <input type="text" id="dEmail" class="form-control" readonly>
+        </div>
+
+        <div class="mb-3">
+          <label class="field-label">Recent Remarks</label>
+          <div id="remarksList"></div>
+        </div>
+
+        <div class="mb-3">
+          <label class="field-label">Next Call Date</label>
+          <input type="date" id="nextDate" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label class="field-label">Add New Remark</label>
+          <textarea
+            id="newRemark"
+            rows="4"
+            class="form-control"
+            placeholder="Add latest communication update"
+          ></textarea>
+        </div>
+
+      </div>
+
+      <div class="modal-footer border-0">
+
+        <button
+          class="dark-btn"
+          onclick="saveDetails()"
+        >
+          Save
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ADD LEAD MODAL -->
+
+<div
+  class="modal fade"
+  id="addModal"
+  tabindex="-1"
+>
+
+  <div class="modal-dialog modal-dialog-centered">
+
+    <div class="modal-content">
+
+      <div class="modal-header border-0">
+
+        <h5>Add Lead</h5>
+
+        <button
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <form id="addForm">
+
+          <input
+            type="text"
+            name="hrName"
+            class="form-control mb-2"
+            placeholder="HR Name"
+            required
+          >
+
+          <input
+            type="text"
+            name="designation"
+            class="form-control mb-2"
+            placeholder="Designation"
+          >
+
+          <input
+            type="text"
+            name="company"
+            class="form-control mb-2"
+            placeholder="Company"
+            required
+          >
+
+          <input
+            type="text"
+            name="phone"
+            class="form-control mb-2"
+            placeholder="Phone"
+          >
+
+          <input
+            type="email"
+            name="email"
+            class="form-control mb-2"
+            placeholder="Email"
+          >
+
+          <input
+            type="date"
+            name="nextFollowUp"
+            class="form-control mb-2"
+          >
+
+          <textarea
+            name="remarks"
+            class="form-control mb-3"
+            placeholder="Remarks"
+          ></textarea>
+
+          <button class="dark-btn w-100">
+            Save Lead
+          </button>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- COMMON SCRIPT MODAL — one shared call script for every lead -->
+
+<div
+  class="modal fade"
+  id="commonScriptModal"
+  tabindex="-1"
+>
+
+  <div class="modal-dialog modal-dialog-centered">
+
+    <div class="modal-content" id="commonScriptContent">
+
+      <div class="resize-handle edge-n"></div>
+      <div class="resize-handle edge-s"></div>
+      <div class="resize-handle edge-e"></div>
+      <div class="resize-handle edge-w"></div>
+      <div class="resize-handle corner corner-nw"></div>
+      <div class="resize-handle corner corner-ne"></div>
+      <div class="resize-handle corner corner-sw"></div>
+      <div class="resize-handle corner corner-se"></div>
+
+      <div class="modal-header border-0">
+
+        <h5 class="modal-title call-script-title">
+          📝 Common Call Script
+        </h5>
+
+        <div class="d-flex align-items-center gap-2">
+
+          <button
+            id="commonScriptEditBtn"
+            class="outline-btn"
+            onclick="toggleCommonScriptEdit()"
+          >
+            Edit
+          </button>
+
+          <button
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
+
+        </div>
+
+      </div>
+
+      <div class="modal-body">
+
+        <div class="call-script-toolbar" id="commonScriptToolbar" style="display:none;">
+
+          <button type="button" class="script-tool-btn" style="font-weight:900;" onmousedown="event.preventDefault()" onclick="formatScript('common','bold')">B</button>
+          <button type="button" class="script-tool-btn" style="font-style:italic;" onmousedown="event.preventDefault()" onclick="formatScript('common','italic')">I</button>
+          <button type="button" class="script-tool-btn" onmousedown="event.preventDefault()" onclick="formatScript('common','insertUnorderedList')">&bull;</button>
+
+        </div>
+
+        <div
+          class="script-editable"
+          id="scriptBox-common"
+          contenteditable="false"
+          data-placeholder="Add the shared talking points everyone should use on a call — intro, what to pitch, questions to ask..."
+        ></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+
+<div
+  class="modal fade"
+  id="deleteModal"
+  tabindex="-1"
+>
+
+  <div class="modal-dialog modal-dialog-centered">
+
+    <div class="modal-content">
+
+      <div class="modal-header border-0">
+
+        <h5 class="modal-title">
+          Delete Contact
+        </h5>
+
+        <button
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <p class="mb-0" id="deleteModalText">
+          Are you sure you want to delete this contact? This cannot be undone.
+        </p>
+
+      </div>
+
+      <div class="modal-footer border-0">
+
+        <button
+          class="outline-btn"
+          data-bs-dismiss="modal"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="dark-btn"
+          style="background:#b91c1c;"
+          onclick="confirmDeleteContact()"
+        >
+          Delete
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ACTIVITY MODAL -->
+
+<div
+  class="modal fade"
+  id="activityModal"
+  tabindex="-1"
+>
+
+  <div class="modal-dialog modal-dialog-centered">
+
+    <div class="modal-content">
+
+      <div class="modal-header border-0">
+
+        <h5 class="modal-title">
+          Recent Activity
+        </h5>
+
+        <button
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+
+      </div>
+
+      <div class="modal-body" style="max-height:60vh; overflow-y:auto;">
+
+        <div id="activityList">
+          <div class="last-remark-box">Loading...</div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- EVENTS CALENDAR MODAL -->
+
+<div
+  class="modal fade"
+  id="calendarModal"
+  tabindex="-1"
+>
+
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+
+    <div class="modal-content">
+
+      <div class="modal-header border-0">
+
+        <h5 class="modal-title">
+          📅 Events Calendar
+        </h5>
+
+        <div class="d-flex align-items-center gap-2">
+
+          <button
+            class="outline-btn"
+            id="reminderSubBtn"
+            onclick="toggleReminderSubscription()"
+            style="padding:7px 12px; font-size:12px;"
+            title="Get a daily email 2 days before each event"
+          >
+            🔔 Email Reminders: Off
+          </button>
+
+          <button
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
+
+        </div>
+
+      </div>
+
+      <div class="modal-body">
+
+        <div class="d-flex align-items-center justify-content-between mb-3">
+
+          <button class="outline-btn" onclick="calShiftMonth(-1)">‹ Prev</button>
+
+          <div class="cal-month-label" id="calMonthLabel"></div>
+
+          <button class="outline-btn" onclick="calShiftMonth(1)">Next ›</button>
+
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+
+          <div class="cal-legend">
+            <span><span class="cal-dot cal-dot-event"></span> Event</span>
+            <span><span class="cal-dot cal-dot-cancelled"></span> Cancelled</span>
+            <span><span class="cal-dot cal-dot-holiday"></span> Holiday</span>
+          </div>
+
+          <button
+            class="dark-btn"
+            style="padding:8px 14px; font-size:12.5px;"
+            onclick="showEventModal(null, null)"
+          >
+            + Add Event
+          </button>
+
+        </div>
+
+        <div class="cal-weekdays">
+          <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+
+        <div class="cal-grid" id="calGrid"></div>
+
+        <div id="calDayPanel" class="cal-day-panel mt-3" style="display:none;"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ADD / EDIT EVENT MODAL -->
+
+<div
+  class="modal fade"
+  id="eventModal"
+  tabindex="-1"
+>
+
+  <div class="modal-dialog modal-dialog-centered">
+
+    <div class="modal-content">
+
+      <div class="modal-header border-0">
+
+        <h5 id="eventModalTitle">Add Event</h5>
+
+        <button
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <input type="hidden" id="eventUuid">
+
+        <input
+          type="text"
+          id="eventName"
+          class="form-control mb-2"
+          placeholder="Event Name"
+        >
+
+        <input
+          type="text"
+          id="eventCompany"
+          class="form-control mb-2"
+          placeholder="Company"
+        >
+
+        <input
+          type="date"
+          id="eventDate"
+          class="form-control mb-2"
+        >
+
+        <div class="form-check mb-2">
+
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="eventIsCampusDrive"
+            onchange="toggleBranchPicker()"
+          >
+
+          <label class="form-check-label" for="eventIsCampusDrive">
+            Campus Drive
+          </label>
+
+        </div>
+
+        <div id="branchPicker" style="display:none;" class="mb-3">
+
+          <label class="d-block mb-2" style="font-size:11.5px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:0.3px;">
+            Branches
+          </label>
+
+          <div class="branch-chip-group" id="branchChips"></div>
+
+        </div>
+
+        <textarea
+          id="eventNotes"
+          class="form-control mb-3"
+          placeholder="Notes (optional)"
+        ></textarea>
+
+        <div id="eventStatusNote" class="mb-2" style="display:none; font-size:12px; font-weight:700; color:#b91c1c;">
+          This event is cancelled.
+        </div>
+
+        <button class="dark-btn w-100" onclick="saveEvent()">
+          Save
+        </button>
+
+        <div id="eventEditActions" class="d-flex gap-2 mt-2" style="display:none;">
+
+          <button
+            class="minimal-btn btn-red flex-fill"
+            id="cancelEventBtn"
+            onclick="cancelEventAction()"
+          >
+            🚫 Cancel Event
+          </button>
+
+          <button
+            class="minimal-btn btn-blue flex-fill"
+            id="restoreEventBtn"
+            onclick="restoreEventAction()"
+            style="display:none;"
+          >
+            ↩️ Restore
+          </button>
+
+          <button
+            class="minimal-btn flex-fill"
+            style="background:#f3f4f6; color:#374151;"
+            onclick="deleteEventAction()"
+          >
+            🗑️ Delete
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+/* ---- Vercel adapter: replaces google.script.run with fetch() calls to the Apps Script web app ---- */
+(function () {
+  if (window.google && window.google.script && window.google.script.run) return; // running inside Apps Script
+
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzeb9YEdGfvFsUT7kW87Y90HvGBZIzMZj2PeT8zmk1w6KMxh7L4_PVT74Xe6QFLsEMMJA/exec'; // ends with /exec
+
+  function call(fn, args, ok, fail) {
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids a CORS preflight
+      body: JSON.stringify({ fn: fn, args: args, token: localStorage.getItem('hrcrm_token') || '' })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res.error === 'unauthorized') {
+          Object.keys(localStorage).forEach(function (k) { if (k.indexOf('hrcrm_') === 0) localStorage.removeItem(k); });
+          location.reload();
+          return;
+        }
+        if (res.error) throw new Error(res.error);
+        if (fn === 'authenticate' && res.result && res.result.token) {
+          localStorage.setItem('hrcrm_token', res.result.token);
+        }
+        if (ok) ok(res.result);
+      })
+      .catch(function (err) {
+        if (fail) fail(err); else console.error(fn, err);
+      });
+  }
+
+  function make(ok, fail) {
+    return new Proxy({}, {
+      get: function (_, prop) {
+        if (prop === 'withSuccessHandler') return function (f) { return make(f, fail); };
+        if (prop === 'withFailureHandler') return function (f) { return make(ok, f); };
+        return function () { call(prop, Array.prototype.slice.call(arguments), ok, fail); };
+      }
+    });
+  }
+
+  window.google = { script: { run: make() } };
+})();
+</script>
+
+<script>
+
+let masterData = [];
+
+let detailsModal;
+let addModal;
+let deleteModal;
+let activityModal;
+let commonScriptModal;
+let calendarModal;
+let eventModal;
+
+let activityPollHandle = null;
+
+let pendingDeleteRowId = null;
+
+let editMode = false;
+
+let activeLetter = null;
+let currentDataset = [];
+
+let currentRemarks = [];
+
+/* EVENTS CALENDAR state */
+
+const BRANCH_OPTIONS = ['All Branches', 'CSE', 'IT', 'ECE', 'EEE', 'ME', 'CE', 'Other'];
+
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-based
+let calSelectedDate = null; // 'yyyy-MM-dd'
+
+let allEvents = [];
+let holidaysByYear = {}; // { year: [{date,title}, ...] }
+let remindersSubscribed = false;
+
+/* LOGIN */
+
+function login(){
+
+  const email = document.getElementById('email').value.trim();
+
+  const password = document.getElementById('password').value.trim();
+
+  google.script.run
+    .withSuccessHandler(function(res){
+
+      if(res.success){
+
+        localStorage.setItem('hrcrm_loggedIn', 'true');
+
+        localStorage.setItem('hrcrm_email', email);
+
+        document.getElementById('loginScreen').style.display = 'none';
+
+        document.getElementById('mainApp').style.display = 'block';
+
+        loadData();
+
+        startActivityFeed();
+
+        loadReminders();
+
+        refreshReminderSubButton();
+
+      } else {
+
+        alert('Invalid Email or Password');
+      }
+
+    })
+    .authenticate(email,password);
+}
+
+/* LOAD DATA */
+
+function loadData(){
+
+  closeRemarkPanel();
+
+  showSkeletons();
+
+  google.script.run
+    .withSuccessHandler(function(data){
+
+      masterData = data;
+
+      renderCards(data);
+
+    })
+    .getHRData();
+}
+
+/* SKELETON LOADING STATE */
+
+function showSkeletons(){
+
+  const skeletons = Array(6).fill('<div class="skeleton-card"></div>').join('');
+
+  document.getElementById('priorityGrid').innerHTML = skeletons;
+
+  document.getElementById('deckRow').innerHTML = '';
+
+  document.getElementById('deckContentTitle').innerHTML = '';
+
+  document.getElementById('allGrid').innerHTML = skeletons;
+}
+
+/* STATUS CHIP CLASS */
+
+function statusChipClass(status){
+
+  switch(status){
+
+    case 'Interested': return 'st-interested';
+    case 'Pr. Mailed': return 'st-mailed';
+    case 'Not Interested': return 'st-notinterested';
+    case 'Call Back': return 'st-callback';
+    default: return '';
+  }
+}
+
+/* INITIALS */
+
+function getInitials(name){
+
+  if(!name) return '?';
+
+  const parts = name.trim().split(' ').filter(Boolean);
+
+  if(parts.length === 1) return parts[0].charAt(0).toUpperCase();
+
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+/* BUILD A SINGLE CARD */
+
+function buildCardHTML(item){
+
+  const cls =
+    item.isOverdue
+      ? 'overdue'
+      : item.isPriority
+        ? 'priority'
+        : '';
+
+  return `
+
+    <div
+      class="crm-card ${cls}"
+      onclick="openDetails('${item.rowId}')"
+      tabindex="0"
+      role="button"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); openDetails('${item.rowId}');}"
+    >
+
+      <div class="d-flex justify-content-between align-items-start">
+
+        <div class="d-flex align-items-start" style="gap:12px;">
+
+          <div class="avatar-circle">
+            ${getInitials(item.hrName)}
+          </div>
+
+          <div>
+
+            <div class="company-name">
+              ${item.company}
+            </div>
+
+            <div class="hr-name-sub">
+              ${item.hrName}
+            </div>
+
+            ${item.designation ? `<div class="designation-tag mt-1">${item.designation}</div>` : ''}
+
+          </div>
+
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+
+          <div class="status-chip ${statusChipClass(item.status)}">
+            ${item.status}
+          </div>
+
+          <button
+            class="delete-card-btn"
+            onclick="event.stopPropagation(); deleteContact('${item.rowId}')"
+            title="Delete contact"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1.5 14a2 2 0 0 1-2 2H8.5a2 2 0 0 1-2-2L5 6"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+            </svg>
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="contact-info mt-3">
+
+        📞 ${item.phone
+          ? `<a href="tel:${item.phone}" target="_top" class="contact-link phone-link" onclick="event.stopPropagation()">${item.phone}</a>`
+          : '-'}
+
+        <br>
+
+        📧 ${item.email
+          ? `<a href="mailto:${item.email}" target="_top" class="contact-link" onclick="event.stopPropagation()">${item.email}</a>`
+          : '-'}
+
+      </div>
+
+      <div class="next-call">
+
+        Next Call:
+        <strong style="color:#111827;">
+          ${item.nextFollowUp || 'Not Set'}
+        </strong>
+
+      </div>
+
+      <div class="first-call-row" onclick="event.stopPropagation()">
+
+        <button
+          type="button"
+          class="remark-toggle-btn ${item.remarks ? 'has-remark' : ''}"
+          id="remarkToggleBtn-${item.rowId}"
+          onclick="openRemarkPanel('${item.rowId}', this)"
+        >
+          💬 LAST REMARK
+        </button>
+
+      </div>
+
+    </div>
+  `;
+}
+
+/* RENDER CARDS (priority grid + alphabet-deck grouped "All Contacts") */
+
+function renderCards(data){
+
+  currentDataset = data;
+
+  const priorityGrid = document.getElementById('priorityGrid');
+
+  const allGrid = document.getElementById('allGrid');
+
+  const deckRow = document.getElementById('deckRow');
+
+  const deckContentTitle = document.getElementById('deckContentTitle');
+
+  priorityGrid.innerHTML = '';
+
+  allGrid.innerHTML = '';
+
+  // SORT COMPANY ALPHABETICALLY
+
+  data.sort((a,b) =>
+    a.company.localeCompare(b.company)
+  );
+
+  // PRIORITY / OVERDUE — always shown as a flat grid
+
+  data.forEach(item => {
+
+    if(item.isPriority || item.isOverdue){
+
+      priorityGrid.innerHTML += buildCardHTML(item);
+    }
+  });
+
+  if(priorityGrid.innerHTML === ''){
+
+    priorityGrid.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-emoji">🎉</span>
+        No urgent follow-ups right now — you're all caught up!
+      </div>
+    `;
+
+    document.getElementById('postponeAllBtn').style.display = 'none';
+
+  } else {
+
+    document.getElementById('postponeAllBtn').style.display = '';
+  }
+
+  // While actively searching, show a flat filtered grid instead of decks
+
+  const isSearching = document.getElementById('search').value.trim() !== '';
+
+  if(isSearching){
+
+    deckRow.innerHTML = '';
+    deckContentTitle.innerHTML = '';
+
+    if(data.length === 0){
+
+      allGrid.innerHTML = `
+        <div class="empty-state">
+          <span class="empty-emoji">🔍</span>
+          No contacts match your search.
+        </div>
+      `;
+
+      return;
+    }
+
+    data.forEach(item => {
+
+      allGrid.innerHTML += buildCardHTML(item);
+    });
+
+    return;
+  }
+
+  // GROUP BY FIRST LETTER OF COMPANY NAME
+
+  const groups = {};
+
+  data.forEach(item => {
+
+    const letter = (item.company || '#').trim().charAt(0).toUpperCase() || '#';
+
+    if(!groups[letter]) groups[letter] = [];
+
+    groups[letter].push(item);
+  });
+
+  const letters = Object.keys(groups).sort();
+
+  // If the previously active letter has no more matches, reset it
+
+  if(activeLetter && !groups[activeLetter]){
+
+    activeLetter = null;
+  }
+
+  deckRow.innerHTML = letters.map(letter => `
+
+    <div
+      class="deck-tile ${activeLetter === letter ? 'active' : ''}"
+      onclick="selectDeck('${letter}')"
+      tabindex="0"
+      role="button"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); selectDeck('${letter}');}"
+    >
+
+      <div class="deck-letter">${letter}</div>
+
+      <div class="deck-count">${groups[letter].length}</div>
+
+    </div>
+  `).join('');
+
+  if(activeLetter && groups[activeLetter]){
+
+    deckContentTitle.innerHTML = `
+
+      <div class="deck-content-title">
+
+        Companies starting with "${activeLetter}"
+
+        <span class="badge-count">${groups[activeLetter].length}</span>
+
+      </div>
+    `;
+
+    groups[activeLetter].forEach(item => {
+
+      allGrid.innerHTML += buildCardHTML(item);
+    });
+
+  } else {
+
+    deckContentTitle.innerHTML = '';
+
+    allGrid.innerHTML = `
+      <div class="deck-hint">
+        Select a letter above to view companies starting with it.
+      </div>
+    `;
+  }
+}
+
+/* SELECT / TOGGLE A DECK */
+
+function selectDeck(letter){
+
+  activeLetter = (activeLetter === letter) ? null : letter;
+
+  renderCards(currentDataset);
+
+  // On mobile the alphabet tiles wrap into several rows, pushing the
+  // results below the fold — scroll straight to them so the user doesn't
+  // have to manually scroll past the whole letter grid every time.
+  if(activeLetter){
+
+    requestAnimationFrame(() => {
+
+      const target = document.getElementById('deckContentTitle');
+
+      if(target){
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+}
+
+/* OPEN DETAILS */
+
+function openDetails(rowId){
+
+  const item = masterData.find(x => x.rowId === rowId);
+
+  if(!item) return;
+
+  document.getElementById('rowId').value = item.rowId;
+  document.getElementById('dName').value = item.hrName;
+  document.getElementById('dDesignation').value = item.designation || '';
+  document.getElementById('dCompany').value = item.company;
+  document.getElementById('dPhone').value = item.phone;
+  document.getElementById('dEmail').value = item.email;
+  document.getElementById('nextDate').value = item.nextFollowUpISO || '';
+  document.getElementById('newRemark').value = '';
+
+  // Load the last 3 remarks for this HR
+  document.getElementById('remarksList').innerHTML =
+    '<div class="last-remark-box">Loading remarks...</div>';
+
+  google.script.run
+    .withSuccessHandler(renderRemarksList)
+    .getRemarksForRow(rowId);
+
+  // Reset to read-only view every time the card is opened
+  editMode = false;
+
+  setEditableFields(false);
+
+  document.getElementById('editBtn').textContent = 'Edit';
+  document.getElementById('editBtn').classList.remove('active-edit');
+
+  detailsModal.show();
+}
+
+/* POSTPONE ALL PRIORITY / OVERDUE BY 1 DAY */
+
+function postponeAllPriority(){
+
+  const count = currentDataset
+    ? currentDataset.filter(x => x.isPriority || x.isOverdue).length
+    : 0;
+
+  if(count === 0) return;
+
+  const ok = confirm(
+    `Postpone all ${count} priority/overdue follow-up${count > 1 ? 's' : ''} to tomorrow?`
+  );
+
+  if(!ok) return;
+
+  const btn = document.getElementById('postponeAllBtn');
+
+  btn.disabled = true;
+
+  btn.textContent = 'Postponing...';
+
+  google.script.run
+    .withSuccessHandler(function(res){
+
+      loadData();
+
+      btn.disabled = false;
+
+      btn.textContent = '⏩ Postpone All +1 Day';
+
+    })
+    .withFailureHandler(function(err){
+
+      alert('Something went wrong postponing follow-ups: ' + err.message);
+
+      btn.disabled = false;
+
+      btn.textContent = '⏩ Postpone All +1 Day';
+
+    })
+    .postponeAllOverdue(localStorage.getItem('hrcrm_email'));
+}
+
+/* POSITION A FLOATING PANEL BESIDE THE CARD (right, falling back to left,
+   falling back to a bottom sheet on narrow/mobile screens) — used by the
+   "LAST REMARK" panel below */
+
+function positionScriptPanel(panel, cardEl){
+
+  if(window.innerWidth < 768){
+
+    panel.classList.add('mobile-sheet');
+    return;
+  }
+
+  const rect = cardEl.getBoundingClientRect();
+
+  const panelWidth = 440;
+  const margin = 14;
+
+  let left = rect.right + margin + window.scrollX;
+
+  // not enough room to the right — try the left side of the card instead
+  if(left + panelWidth > window.innerWidth - 10){
+    left = rect.left + window.scrollX - panelWidth - margin;
+  }
+
+  // still doesn't fit — fall back to aligning with the card's left edge
+  if(left < 10){
+    left = Math.max(10, rect.left + window.scrollX);
+  }
+
+  let top = rect.top + window.scrollY;
+
+  panel.style.left = left + 'px';
+  panel.style.top = top + 'px';
+}
+
+/* FLOATING "LAST REMARK" PANEL — opens beside the card that was clicked,
+   as a true overlay outside the grid, not nested inside the card */
+
+let openRemarkRowId = null;
+
+function openRemarkPanel(rowId, btnEl){
+
+  // clicking the same card's LAST REMARK button again closes it
+  if(openRemarkRowId === rowId){
+    closeRemarkPanel();
+    return;
+  }
+
+  closeRemarkPanel();
+
+  const item = masterData.find(x => x.rowId === rowId);
+
+  if(!item) return;
+
+  openRemarkRowId = rowId;
+
+  const panel = document.createElement('div');
+
+  panel.className = 'floating-script-panel floating-remark-panel';
+  panel.id = 'floatingRemarkPanel';
+
+  panel.innerHTML = `
+
+    <div class="call-script-header">
+
+      <div class="call-script-title">
+        💬 LAST REMARK — <span style="font-weight:800;">${escapeHtml(item.hrName || item.company || '')}</span>
+      </div>
+
+      <div class="panel-header-actions">
+        <button type="button" class="panel-edit-btn" id="remarkEditBtn-panel" onclick="handlePanelEditToggle('remark')">Edit</button>
+        <button type="button" class="script-close-btn" onclick="closeRemarkPanel()">&times;</button>
+      </div>
+
+    </div>
+
+    <div class="call-script-toolbar" id="remarkToolbar-panel" style="display:none;">
+
+      <button type="button" class="script-tool-btn" style="font-weight:900;" onmousedown="event.preventDefault()" onclick="formatScript('remarkpanel','bold')">B</button>
+      <button type="button" class="script-tool-btn" style="font-style:italic;" onmousedown="event.preventDefault()" onclick="formatScript('remarkpanel','italic')">I</button>
+      <button type="button" class="script-tool-btn" onmousedown="event.preventDefault()" onclick="formatScript('remarkpanel','insertUnorderedList')">&bull;</button>
+
+    </div>
+
+    <div
+      class="script-editable"
+      id="scriptBox-remarkpanel"
+      contenteditable="false"
+      data-placeholder="Add latest communication update — no remarks yet..."
+    >${item.remarks ? escapeHtml(item.remarks) : ''}</div>
+
+  `;
+
+  document.body.appendChild(panel);
+
+  positionScriptPanel(panel, btnEl.closest('.crm-card') || btnEl.closest('.modal-content') || btnEl);
+
+  setTimeout(() => document.addEventListener('mousedown', handleRemarkPanelOutsideClick), 0);
+}
+
+function handleRemarkPanelOutsideClick(e){
+
+  const panel = document.getElementById('floatingRemarkPanel');
+
+  if(!panel) return;
+
+  if(panel.contains(e.target)) return;
+
+  if(e.target.closest('.remark-toggle-btn')) return;
+
+  closeRemarkPanel();
+}
+
+function closeRemarkPanel(){
+
+  const panel = document.getElementById('floatingRemarkPanel');
+
+  if(!panel) return;
+
+  // If the box was mid-edit, save before closing so nothing typed is lost
+  const box = document.getElementById('scriptBox-remarkpanel');
+
+  if(box && box.getAttribute('contenteditable') === 'true' && openRemarkRowId){
+    saveRemarkFromPanel(openRemarkRowId);
+  }
+
+  panel.remove();
+
+  openRemarkRowId = null;
+
+  document.removeEventListener('mousedown', handleRemarkPanelOutsideClick);
+}
+
+/* SAVE A NEW REMARK FROM THE FLOATING PANEL (doesn't touch next-call date) */
+
+function saveRemarkFromPanel(rowId){
+
+  const box = document.getElementById('scriptBox-remarkpanel');
+
+  if(!box || !rowId) return;
+
+  const html = box.innerHTML.trim();
+
+  if(html === '') return;
+
+  google.script.run
+    .withSuccessHandler(function(){
+
+      // Update in-memory data + the card's button state quietly,
+      // no full-grid reload, so nothing else on screen is disrupted
+      const item = masterData.find(x => x.rowId === rowId);
+
+      if(item) item.remarks = html;
+
+      const btn = document.getElementById('remarkToggleBtn-' + rowId);
+
+      if(btn) btn.classList.add('has-remark');
+
+    })
+    .withFailureHandler(function(err){
+      alert('Could not save remark: ' + err.message);
+    })
+    .updateHRRemark(rowId, html, '', localStorage.getItem('hrcrm_email'));
+}
+
+/* SHARED EDIT/SAVE TOGGLE for both floating panels — starts read-only for
+   easy reading, "Edit" unlocks the box + reveals the formatting toolbar,
+   clicking it again (now labelled "Save") persists the change and locks
+   the box back to read-only */
+
+const PANEL_EDIT_CONFIG = {
+  remark: {
+    boxId: 'scriptBox-remarkpanel',
+    toolbarId: 'remarkToolbar-panel',
+    btnId: 'remarkEditBtn-panel',
+    save: () => saveRemarkFromPanel(openRemarkRowId)
+  }
+};
+
+function handlePanelEditToggle(kind){
+
+  const cfg = PANEL_EDIT_CONFIG[kind];
+
+  if(!cfg) return;
+
+  const box = document.getElementById(cfg.boxId);
+  const toolbar = document.getElementById(cfg.toolbarId);
+  const btn = document.getElementById(cfg.btnId);
+
+  if(!box || !btn) return;
+
+  const isEditing = box.getAttribute('contenteditable') === 'true';
+
+  if(!isEditing){
+
+    box.setAttribute('contenteditable', 'true');
+
+    if(toolbar) toolbar.style.display = 'flex';
+
+    box.focus();
+
+    btn.textContent = 'Save';
+
+    return;
+  }
+
+  cfg.save();
+
+  box.setAttribute('contenteditable', 'false');
+
+  if(toolbar) toolbar.style.display = 'none';
+
+  btn.textContent = 'Saved ✓';
+
+  setTimeout(() => { if(btn) btn.textContent = 'Edit'; }, 1200);
+}
+
+/* ============================================================
+   DRAG-TO-RESIZE POPUP (grab any corner/edge to stretch the box)
+   As the box grows or shrinks, the text inside scales with it —
+   see applyScale() below, driven off the box's own width/height
+   relative to its starting ("base") size.
+============================================================ */
+
+function makeModalResizable(contentEl, opts){
+
+  if(!contentEl) return;
+
+  const baseWidth  = opts.baseWidth;
+  const baseHeight = opts.baseHeight;
+  const minWidth   = opts.minWidth  || 320;
+  const minHeight  = opts.minHeight || 260;
+  const scaleTargets = opts.scaleTargets || [];
+
+  const handleDirs = {
+    'edge-n': 'n', 'edge-s': 's', 'edge-e': 'e', 'edge-w': 'w',
+    'corner-nw': 'nw', 'corner-ne': 'ne',
+    'corner-sw': 'sw', 'corner-se': 'se'
+  };
+
+  function applyScale(w, h){
+
+    const widthRatio  = w / baseWidth;
+    const heightRatio = h / baseHeight;
+
+    // Use the smaller of the two ratios so text never overflows
+    // the box in either direction as it's stretched unevenly.
+    let scale = Math.min(widthRatio, heightRatio);
+
+    scale = Math.min(Math.max(scale, 0.75), 2.25);
+
+    scaleTargets.forEach(t => {
+
+      contentEl.querySelectorAll(t.selector).forEach(node => {
+        node.style.fontSize = Math.round(t.baseSize * scale) + 'px';
+      });
+    });
+  }
+
+  Object.keys(handleDirs).forEach(cls => {
+
+    const el = contentEl.querySelector('.resize-handle.' + cls);
+
+    if(!el) return;
+
+    const dirs = handleDirs[cls];
+
+    el.addEventListener('pointerdown', function(e){
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      el.setPointerCapture(e.pointerId);
+
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startWidth  = contentEl.offsetWidth;
+      const startHeight = contentEl.offsetHeight;
+
+      const maxWidth  = window.innerWidth  * 0.96;
+      const maxHeight = window.innerHeight * 0.92;
+
+      function onMove(ev){
+
+        let newWidth  = startWidth;
+        let newHeight = startHeight;
+
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+
+        if(dirs.indexOf('e') !== -1) newWidth  = startWidth  + dx;
+        if(dirs.indexOf('w') !== -1) newWidth  = startWidth  - dx;
+        if(dirs.indexOf('s') !== -1) newHeight = startHeight + dy;
+        if(dirs.indexOf('n') !== -1) newHeight = startHeight - dy;
+
+        newWidth  = Math.min(Math.max(newWidth,  minWidth),  maxWidth);
+        newHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
+
+        contentEl.style.width  = newWidth  + 'px';
+        contentEl.style.height = newHeight + 'px';
+
+        applyScale(newWidth, newHeight);
+      }
+
+      function onUp(ev){
+        el.releasePointerCapture(ev.pointerId);
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+      }
+
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+    });
+  });
+
+  // Match the text scale to whatever size the box starts at
+  applyScale(contentEl.offsetWidth, contentEl.offsetHeight);
+}
+
+/* APPLY BOLD / ITALIC / BULLET-LIST FORMATTING INSIDE A CALL SCRIPT BOX */
+
+function formatScript(boxKey, command){
+
+  const box = document.getElementById('scriptBox-' + boxKey);
+
+  if(!box) return;
+
+  box.focus();
+
+  document.execCommand(command, false, null);
+}
+
+/* COMMON CALL SCRIPT — one shared script for every lead, opened from the
+   single "📝 Script" button next to "+ Add Lead" */
+
+function openCommonScriptModal(){
+
+  const box = document.getElementById('scriptBox-common');
+
+  box.setAttribute('contenteditable', 'false');
+
+  document.getElementById('commonScriptToolbar').style.display = 'none';
+
+  document.getElementById('commonScriptEditBtn').textContent = 'Edit';
+
+  box.innerHTML = 'Loading...';
+
+  commonScriptModal.show();
+
+  google.script.run
+    .withSuccessHandler(function(html){
+
+      box.innerHTML = html || '';
+    })
+    .withFailureHandler(function(err){
+
+      box.innerHTML = '';
+
+      alert('Could not load the common script: ' + err.message);
+    })
+    .getCommonScript();
+}
+
+function toggleCommonScriptEdit(){
+
+  const box = document.getElementById('scriptBox-common');
+  const toolbar = document.getElementById('commonScriptToolbar');
+  const btn = document.getElementById('commonScriptEditBtn');
+
+  const isEditing = box.getAttribute('contenteditable') === 'true';
+
+  if(!isEditing){
+
+    box.setAttribute('contenteditable', 'true');
+
+    toolbar.style.display = 'flex';
+
+    box.focus();
+
+    btn.textContent = 'Save';
+
+    return;
+  }
+
+  const html = box.innerHTML.trim();
+
+  google.script.run
+    .withSuccessHandler(function(){
+
+      btn.textContent = 'Saved ✓';
+
+      setTimeout(() => { btn.textContent = 'Edit'; }, 1200);
+    })
+    .withFailureHandler(function(err){
+
+      alert('Could not save the common script: ' + err.message);
+
+      btn.textContent = 'Edit';
+    })
+    .updateCommonScript(html, localStorage.getItem('hrcrm_email'));
+
+  box.setAttribute('contenteditable', 'false');
+
+  toolbar.style.display = 'none';
+}
+
+
+/* DELETE A CONTACT */
+
+function deleteContact(rowId){
+
+  const item = masterData.find(x => x.rowId === rowId);
+
+  const label = item ? `${item.hrName} (${item.company})` : 'this contact';
+
+  pendingDeleteRowId = rowId;
+
+  document.getElementById('deleteModalText').textContent =
+    `Are you sure you want to delete ${label}? This cannot be undone.`;
+
+  deleteModal.show();
+}
+
+/* CONFIRM DELETE (called from the delete modal's Delete button) */
+
+function confirmDeleteContact(){
+
+  if(pendingDeleteRowId === null) return;
+
+  const rowId = pendingDeleteRowId;
+
+  pendingDeleteRowId = null;
+
+  deleteModal.hide();
+
+  google.script.run
+    .withSuccessHandler(function(){
+
+      loadData();
+
+    })
+    .deleteHR(rowId, localStorage.getItem('hrcrm_email'));
+}
+
+/* RENDER REMARKS LIST (last 3, most recent first) */
+
+function renderRemarksList(remarks){
+
+  currentRemarks = remarks || [];
+
+  const list = document.getElementById('remarksList');
+
+  if(currentRemarks.length === 0){
+
+    list.innerHTML = '<div class="last-remark-box empty">No remarks yet</div>';
+
+    return;
+  }
+
+  list.innerHTML = currentRemarks.slice(0, 3).map(r => `
+
+    <div class="remark-item" data-id="${r.id}">
+
+      <div class="remark-item-header">
+
+        <span class="remark-time">${r.timestamp}</span>
+
+        <button
+          class="remark-edit-btn"
+          onclick="startEditRemark('${r.id}')"
+        >
+          Edit
+        </button>
+
+      </div>
+
+      <div class="remark-text" id="remarkText-${r.id}">
+        ${escapeHtml(r.text)}
+      </div>
+
+    </div>
+  `).join('');
+}
+
+/* ESCAPE HTML (safety for displaying remark text) */
+
+function escapeHtml(str){
+
+  const div = document.createElement('div');
+
+  div.textContent = str || '';
+
+  return div.innerHTML;
+}
+
+/* START EDITING A SINGLE REMARK INLINE */
+
+function startEditRemark(remarkId){
+
+  const remark = currentRemarks.find(r => String(r.id) === String(remarkId));
+
+  if(!remark) return;
+
+  const textEl = document.getElementById('remarkText-' + remarkId);
+
+  textEl.innerHTML = `
+
+    <textarea
+      id="editArea-${remarkId}"
+      class="form-control form-control-sm mb-2"
+      rows="2"
+    >${remark.text}</textarea>
+
+    <div class="d-flex gap-2">
+
+      <button
+        class="remark-save-btn"
+        onclick="confirmEditRemark('${remarkId}')"
+      >
+        Save
+      </button>
+
+      <button
+        class="remark-cancel-btn"
+        onclick="renderRemarksList(currentRemarks)"
+      >
+        Cancel
+      </button>
+
+    </div>
+  `;
+}
+
+/* CONFIRM EDIT OF A SINGLE REMARK */
+
+function confirmEditRemark(remarkId){
+
+  const textarea = document.getElementById('editArea-' + remarkId);
+
+  const newText = textarea.value.trim();
+
+  if(newText === '') return;
+
+  google.script.run
+    .withSuccessHandler(function(){
+
+      const rowId = document.getElementById('rowId').value;
+
+      google.script.run
+        .withSuccessHandler(renderRemarksList)
+        .getRemarksForRow(rowId);
+
+      loadData();
+    })
+    .editRemarkLog(remarkId, newText, localStorage.getItem('hrcrm_email'));
+}
+
+/* TOGGLE EDIT MODE */
+
+function toggleEdit(){
+
+  editMode = !editMode;
+
+  setEditableFields(editMode);
+
+  const editBtn = document.getElementById('editBtn');
+
+  if(editMode){
+
+    editBtn.textContent = 'Editing...';
+    editBtn.classList.add('active-edit');
+
+  } else {
+
+    editBtn.textContent = 'Edit';
+    editBtn.classList.remove('active-edit');
+  }
+}
+
+function setEditableFields(isEditable){
+
+  ['dName','dDesignation','dCompany','dPhone','dEmail'].forEach(id => {
+
+    document.getElementById(id).readOnly = !isEditable;
+  });
+}
+
+/* SAVE DETAILS (contact info + remark + next call date) */
+
+function saveDetails(){
+
+  const rowId = document.getElementById('rowId').value;
+
+  const detailsObj = {
+
+    hrName: document.getElementById('dName').value,
+    designation: document.getElementById('dDesignation').value,
+    company: document.getElementById('dCompany').value,
+    phone: document.getElementById('dPhone').value,
+    email: document.getElementById('dEmail').value
+  };
+
+  const remark = document.getElementById('newRemark').value;
+
+  const nextDate = document.getElementById('nextDate').value;
+
+  google.script.run.updateHRDetails(rowId, detailsObj, localStorage.getItem('hrcrm_email'));
+
+  google.script.run
+    .withSuccessHandler(function(){
+
+      detailsModal.hide();
+
+      loadData();
+
+    })
+    .updateHRRemark(rowId,remark,nextDate,localStorage.getItem('hrcrm_email'));
+}
+
+/* FILTER */
+
+function filterCards(){
+
+  const q = document
+    .getElementById('search')
+    .value
+    .toLowerCase();
+
+  const filtered = masterData.filter(item =>
+
+    item.hrName.toLowerCase().includes(q) ||
+
+    item.company.toLowerCase().includes(q)
+  );
+
+  renderCards(filtered);
+}
+
+/* ADD LEAD */
+
+function showAddModal(){
+
+  addModal.show();
+}
+
+document.getElementById('addForm').onsubmit = function(e){
+
+  e.preventDefault();
+
+  const data = {
+
+    hrName:this.hrName.value,
+    designation:this.designation.value,
+    company:this.company.value,
+    phone:this.phone.value,
+    email:this.email.value,
+    nextFollowUp:this.nextFollowUp.value,
+    remarks:this.remarks.value
+  };
+
+  google.script.run
+    .withSuccessHandler(() => {
+
+      addModal.hide();
+
+      this.reset();
+
+      loadData();
+
+    })
+    .addHR(data, localStorage.getItem('hrcrm_email'));
+};
+
+/* ACTIVITY FEED */
+
+// Icons per action type, for a quick visual scan of the activity list
+function activityIcon(action){
+
+  switch(action){
+    case 'New Lead': return '➕';
+    case 'New Remark': return '💬';
+    case 'Edited Remark': return '✏️';
+    case 'Edited Details': return '🛠️';
+    case 'Follow-up Scheduled': return '📅';
+    case 'Deleted Contact': return '🗑️';
+    default: return '🔔';
+  }
+}
+
+// Start (or restart) polling for new activity — checks every 60s while the app is open
+function startActivityFeed(){
+
+  loadActivityBadge();
+
+  if(activityPollHandle){
+    clearInterval(activityPollHandle);
+  }
+
+  activityPollHandle = setInterval(loadActivityBadge, 60000);
+}
+
+// Fetch recent activity and update the unread badge (doesn't open the panel)
+function loadActivityBadge(){
+
+  google.script.run
+    .withSuccessHandler(function(activity){
+
+      const badge = document.getElementById('activityBadge');
+
+      const lastSeen = Number(localStorage.getItem('hrcrm_lastSeenActivity') || 0);
+
+      const unread = (activity || []).filter(a => a.timestampRaw > lastSeen).length;
+
+      if(unread > 0){
+
+        badge.textContent = unread > 99 ? '99+' : unread;
+        badge.style.display = 'flex';
+
+      } else {
+
+        badge.style.display = 'none';
+      }
+
+      // cache for the panel so opening it doesn't need a second round-trip
+      window._latestActivity = activity || [];
+    })
+    .getRecentActivity(50);
+}
+
+// Open the Recent Activity panel — always fetches fresh, then marks everything as seen
+function openActivityPanel(){
+
+  const list = document.getElementById('activityList');
+
+  list.innerHTML = '<div class="last-remark-box">Loading...</div>';
+
+  activityModal.show();
+
+  google.script.run
+    .withSuccessHandler(function(activity){
+
+      renderActivityList(activity || []);
+
+      // Mark everything up to the newest entry as seen
+      if(activity && activity.length > 0){
+
+        localStorage.setItem('hrcrm_lastSeenActivity', String(activity[0].timestampRaw));
+      }
+
+      document.getElementById('activityBadge').style.display = 'none';
+    })
+    .getRecentActivity(50);
+}
+
+function renderActivityList(activity){
+
+  const list = document.getElementById('activityList');
+
+  if(activity.length === 0){
+
+    list.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-emoji">🗒️</span>
+        No activity yet.
+      </div>
+    `;
+
+    return;
+  }
+
+  list.innerHTML = activity.map(a => `
+
+    <div class="activity-item">
+
+      <div class="activity-icon">${activityIcon(a.action)}</div>
+
+      <div class="activity-body">
+
+        <div class="activity-action">${a.action}</div>
+
+        <div class="activity-details">${escapeHtml(a.details)}</div>
+
+        <div class="activity-meta">${escapeHtml(a.user)} • ${a.timestamp}</div>
+
+      </div>
+
+    </div>
+  `).join('');
+}
+
+/* =========================
+   EVENTS CALENDAR
+========================= */
+
+// Build the branch checkbox chips once (form contents don't change).
+function renderBranchChips(){
+
+  const wrap = document.getElementById('branchChips');
+
+  wrap.innerHTML = BRANCH_OPTIONS.map(b => `
+    <label class="branch-chip" data-branch="${escapeHtml(b)}">
+      <input type="checkbox" value="${escapeHtml(b)}" onchange="onBranchChipChange(this)">
+      ${escapeHtml(b)}
+    </label>
+  `).join('');
+}
+
+// "All Branches" checks/locks every other chip; unchecking it frees them again.
+function onBranchChipChange(checkbox){
+
+  const label = checkbox.closest('.branch-chip');
+  label.classList.toggle('checked', checkbox.checked);
+
+  if(checkbox.value === 'All Branches'){
+
+    document.querySelectorAll('#branchChips input[type="checkbox"]').forEach(cb => {
+
+      if(cb.value === 'All Branches') return;
+
+      cb.checked = checkbox.checked;
+      cb.disabled = checkbox.checked;
+      cb.closest('.branch-chip').classList.toggle('checked', checkbox.checked);
+    });
+  }
+}
+
+function getSelectedBranches(){
+
+  const allCb = document.querySelector('#branchChips input[value="All Branches"]');
+
+  if(allCb && allCb.checked){
+    return ['All Branches'];
+  }
+
+  return Array.from(document.querySelectorAll('#branchChips input[type="checkbox"]:checked'))
+    .map(cb => cb.value);
+}
+
+function setSelectedBranches(branchesStr){
+
+  const selected = branchesStr ? branchesStr.split(',').map(s => s.trim()) : [];
+
+  document.querySelectorAll('#branchChips input[type="checkbox"]').forEach(cb => {
+
+    cb.disabled = false;
+    cb.checked = selected.indexOf(cb.value) !== -1;
+    cb.closest('.branch-chip').classList.toggle('checked', cb.checked);
+  });
+
+  // Re-apply the "All Branches" lock if it was one of the saved branches
+  const allCb = document.querySelector('#branchChips input[value="All Branches"]');
+
+  if(allCb && allCb.checked){
+    onBranchChipChange(allCb);
+  }
+}
+
+function toggleBranchPicker(){
+
+  const on = document.getElementById('eventIsCampusDrive').checked;
+
+  document.getElementById('branchPicker').style.display = on ? 'block' : 'none';
+}
+
+// Open the calendar modal, defaulting to the current month.
+function openCalendarPanel(){
+
+  calYear = new Date().getFullYear();
+  calMonth = new Date().getMonth();
+  calSelectedDate = null;
+
+  document.getElementById('calDayPanel').style.display = 'none';
+
+  calendarModal.show();
+
+  refreshReminderSubButton();
+
+  loadCalendarData();
+}
+
+// Fetch events + this year's holidays, then render.
+function loadCalendarData(){
+
+  document.getElementById('calGrid').innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:20px; color:var(--muted);">Loading...</div>';
+
+  google.script.run
+    .withSuccessHandler(function(events){
+
+      allEvents = events || [];
+
+      ensureHolidaysLoaded(calYear, renderCalendar);
+    })
+    .getEvents();
+}
+
+function ensureHolidaysLoaded(year, callback){
+
+  if(holidaysByYear[year]){
+    callback();
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(holidays){
+
+      holidaysByYear[year] = holidays || [];
+      callback();
+    })
+    .withFailureHandler(function(){
+
+      holidaysByYear[year] = [];
+      callback();
+    })
+    .getHolidays(year);
+}
+
+function calShiftMonth(delta){
+
+  calMonth += delta;
+
+  if(calMonth < 0){
+    calMonth = 11;
+    calYear--;
+  } else if(calMonth > 11){
+    calMonth = 0;
+    calYear++;
+  }
+
+  calSelectedDate = null;
+  document.getElementById('calDayPanel').style.display = 'none';
+
+  ensureHolidaysLoaded(calYear, renderCalendar);
+}
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function renderCalendar(){
+
+  document.getElementById('calMonthLabel').textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+
+  const firstOfMonth = new Date(calYear, calMonth, 1);
+  const startWeekday = firstOfMonth.getDay(); // 0 = Sun
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+  const todayISO = isoDate(new Date());
+
+  const holidays = holidaysByYear[calYear] || [];
+  const holidayMap = {};
+  holidays.forEach(h => { holidayMap[h.date] = h.title; });
+
+  const eventsByDate = {};
+  allEvents.forEach(e => {
+    if(!e.eventDateISO) return;
+    (eventsByDate[e.eventDateISO] = eventsByDate[e.eventDateISO] || []).push(e);
+  });
+
+  let html = '';
+
+  for(let i = 0; i < startWeekday; i++){
+    html += `<div class="cal-cell cal-empty"></div>`;
+  }
+
+  for(let day = 1; day <= daysInMonth; day++){
+
+    const iso = `${calYear}-${String(calMonth + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+
+    const dayEvents = eventsByDate[iso] || [];
+    const holidayTitle = holidayMap[iso];
+
+    const hasActive = dayEvents.some(e => e.status === 'Scheduled');
+    const hasCancelled = dayEvents.some(e => e.status === 'Cancelled');
+
+    let classes = 'cal-cell';
+    if(iso === todayISO) classes += ' cal-today';
+    if(iso === calSelectedDate) classes += ' cal-selected';
+    if(holidayTitle) classes += ' cal-has-holiday';
+
+    let dots = '';
+    if(hasActive) dots += '<span class="cal-dot cal-dot-event"></span>';
+    if(hasCancelled) dots += '<span class="cal-dot cal-dot-cancelled"></span>';
+    if(holidayTitle) dots += '<span class="cal-dot cal-dot-holiday"></span>';
+
+    html += `
+      <div class="${classes}" onclick="selectCalDay('${iso}')" title="${holidayTitle ? escapeHtml(holidayTitle) : ''}">
+        <div class="cal-day-number">${day}</div>
+        <div class="cal-dots">${dots}</div>
+      </div>
+    `;
+  }
+
+  document.getElementById('calGrid').innerHTML = html;
+
+  if(calSelectedDate){
+    renderDayPanel(calSelectedDate);
+  }
+}
+
+function isoDate(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function selectCalDay(iso){
+
+  calSelectedDate = iso;
+
+  renderCalendar();
+  renderDayPanel(iso);
+}
+
+function renderDayPanel(iso){
+
+  const panel = document.getElementById('calDayPanel');
+  panel.style.display = 'block';
+
+  const dayEvents = allEvents
+    .filter(e => e.eventDateISO === iso)
+    .sort((a,b) => (a.status === 'Cancelled') - (b.status === 'Cancelled'));
+
+  const holidayTitle = (holidaysByYear[calYear] || []).find(h => h.date === iso);
+
+  const dateLabel = new Date(iso + 'T00:00:00').toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  let itemsHtml = '';
+
+  if(holidayTitle){
+    itemsHtml += `
+      <div class="cal-event-item cal-holiday-item">
+        <div>
+          <div class="cal-event-name">🇮🇳 ${escapeHtml(holidayTitle.title)}</div>
+          <div class="cal-event-sub">Government Holiday</div>
+        </div>
+      </div>
+    `;
+  }
+
+  if(dayEvents.length === 0 && !holidayTitle){
+
+    itemsHtml += `<div class="empty-state" style="padding:14px 0;"><span class="empty-emoji">🗓️</span> No events on this day.</div>`;
+
+  } else {
+
+    itemsHtml += dayEvents.map(e => `
+      <div class="cal-event-item ${e.status === 'Cancelled' ? 'cal-event-cancelled' : ''}" onclick='showEventModal("${iso}", ${JSON.stringify(e).replace(/'/g, "&#39;")})'>
+        <div>
+          <div class="cal-event-name">${escapeHtml(e.eventName)}</div>
+          <div class="cal-event-sub">
+            ${e.company ? escapeHtml(e.company) + ' • ' : ''}${e.type === 'Campus Drive' ? '🎓 Campus Drive' + (e.branches ? ' (' + escapeHtml(e.branches) + ')' : '') : e.type}
+            ${e.status === 'Cancelled' ? ' • Cancelled' : ''}
+          </div>
+        </div>
+        <span style="font-size:16px;">›</span>
+      </div>
+    `).join('');
+  }
+
+  panel.innerHTML = `
+    <div class="cal-day-panel-header">
+      <div class="cal-day-panel-title">${dateLabel}</div>
+      <button class="outline-btn" style="padding:6px 12px; font-size:12px;" onclick="showEventModal('${iso}', null)">+ Add Event</button>
+    </div>
+    ${itemsHtml}
+  `;
+}
+
+// Open the Add/Edit Event modal. Pass an existing event object to edit it,
+// or null to create a new one (prefilled with the given date, if any).
+function showEventModal(prefillDate, existingEvent){
+
+  document.getElementById('eventUuid').value = existingEvent ? existingEvent.id : '';
+  document.getElementById('eventName').value = existingEvent ? existingEvent.eventName : '';
+  document.getElementById('eventCompany').value = existingEvent ? existingEvent.company : '';
+  document.getElementById('eventDate').value = existingEvent ? existingEvent.eventDateISO : (prefillDate || '');
+  document.getElementById('eventNotes').value = existingEvent ? existingEvent.notes : '';
+
+  const isCampusDrive = existingEvent ? existingEvent.type === 'Campus Drive' : false;
+  document.getElementById('eventIsCampusDrive').checked = isCampusDrive;
+  document.getElementById('branchPicker').style.display = isCampusDrive ? 'block' : 'none';
+  setSelectedBranches(existingEvent ? existingEvent.branches : '');
+
+  document.getElementById('eventModalTitle').textContent = existingEvent ? 'Edit Event' : 'Add Event';
+  document.getElementById('eventEditActions').style.display = existingEvent ? 'flex' : 'none';
+
+  const cancelled = existingEvent && existingEvent.status === 'Cancelled';
+  document.getElementById('eventStatusNote').style.display = cancelled ? 'block' : 'none';
+  document.getElementById('cancelEventBtn').style.display = cancelled ? 'none' : 'block';
+  document.getElementById('restoreEventBtn').style.display = cancelled ? 'block' : 'none';
+
+  eventModal.show();
+}
+
+function saveEvent(){
+
+  const uuid = document.getElementById('eventUuid').value;
+  const eventName = document.getElementById('eventName').value.trim();
+  const eventDate = document.getElementById('eventDate').value;
+  const isCampusDrive = document.getElementById('eventIsCampusDrive').checked;
+  const branches = getSelectedBranches();
+
+  if(!eventName){
+    alert('Please enter an event name.');
+    return;
+  }
+
+  if(!eventDate){
+    alert('Please pick a date.');
+    return;
+  }
+
+  if(isCampusDrive && branches.length === 0){
+    alert('Please select at least one branch for the campus drive.');
+    return;
+  }
+
+  const obj = {
+    eventName: eventName,
+    company: document.getElementById('eventCompany').value.trim(),
+    isCampusDrive: isCampusDrive,
+    branches: branches,
+    eventDate: eventDate,
+    notes: document.getElementById('eventNotes').value.trim()
+  };
+
+  const email = localStorage.getItem('hrcrm_email');
+
+  const handler = function(res){
+
+    if(res && res.success){
+
+      eventModal.hide();
+      calSelectedDate = eventDate;
+      loadCalendarData();
+      loadReminders();
+
+    } else {
+
+      alert('Something went wrong saving the event.');
+    }
+  };
+
+  if(uuid){
+
+    google.script.run.withSuccessHandler(handler).updateEvent(uuid, obj, email);
+
+  } else {
+
+    google.script.run.withSuccessHandler(handler).addEvent(obj, email);
+  }
+}
+
+function cancelEventAction(){
+
+  const uuid = document.getElementById('eventUuid').value;
+  if(!uuid) return;
+
+  google.script.run
+    .withSuccessHandler(function(){
+      eventModal.hide();
+      loadCalendarData();
+      loadReminders();
+    })
+    .cancelEvent(uuid, localStorage.getItem('hrcrm_email'));
+}
+
+function restoreEventAction(){
+
+  const uuid = document.getElementById('eventUuid').value;
+  if(!uuid) return;
+
+  google.script.run
+    .withSuccessHandler(function(){
+      eventModal.hide();
+      loadCalendarData();
+      loadReminders();
+    })
+    .restoreEvent(uuid, localStorage.getItem('hrcrm_email'));
+}
+
+function deleteEventAction(){
+
+  const uuid = document.getElementById('eventUuid').value;
+  if(!uuid) return;
+
+  if(!confirm('Delete this event permanently?')) return;
+
+  google.script.run
+    .withSuccessHandler(function(){
+      eventModal.hide();
+      loadCalendarData();
+      loadReminders();
+    })
+    .deleteEvent(uuid, localStorage.getItem('hrcrm_email'));
+}
+
+/* REMINDERS (banner + badge + optional email subscription) */
+
+function loadReminders(){
+
+  google.script.run
+    .withSuccessHandler(function(reminders){
+
+      reminders = reminders || [];
+
+      const badge = document.getElementById('calendarBadge');
+
+      if(reminders.length > 0){
+        badge.textContent = reminders.length > 99 ? '99+' : reminders.length;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      showReminderBanner(reminders);
+    })
+    .getUpcomingReminders();
+}
+
+function showReminderBanner(reminders){
+
+  const banner = document.getElementById('reminderBanner');
+
+  const dismissedFor = sessionStorage.getItem('hrcrm_reminderDismissedDate');
+  const todayISO = isoDate(new Date());
+
+  if(reminders.length === 0 || dismissedFor === todayISO){
+    banner.style.display = 'none';
+    return;
+  }
+
+  const names = reminders.slice(0, 3).map(e => e.eventName).join(', ');
+  const extra = reminders.length > 3 ? ` and ${reminders.length - 3} more` : '';
+
+  document.getElementById('reminderBannerText').textContent =
+    `🔔 Coming up in the next 2 days: ${names}${extra}`;
+
+  banner.style.display = 'block';
+}
+
+function dismissReminderBanner(){
+
+  sessionStorage.setItem('hrcrm_reminderDismissedDate', isoDate(new Date()));
+  document.getElementById('reminderBanner').style.display = 'none';
+}
+
+function refreshReminderSubButton(){
+
+  const email = localStorage.getItem('hrcrm_email');
+  if(!email) return;
+
+  google.script.run
+    .withSuccessHandler(function(subscribed){
+
+      remindersSubscribed = !!subscribed;
+
+      const btn = document.getElementById('reminderSubBtn');
+      btn.textContent = remindersSubscribed ? '🔔 Email Reminders: On' : '🔔 Email Reminders: Off';
+      btn.classList.toggle('active-edit', remindersSubscribed);
+    })
+    .isSubscribedToReminders(email);
+}
+
+function toggleReminderSubscription(){
+
+  const email = localStorage.getItem('hrcrm_email');
+  if(!email) return;
+
+  const call = remindersSubscribed
+    ? google.script.run.withSuccessHandler(refreshReminderSubButton).unsubscribeFromReminders(email)
+    : google.script.run.withSuccessHandler(refreshReminderSubButton).subscribeToReminders(email);
+}
+
+/* LOGOUT */
+
+function logout(){
+
+  localStorage.removeItem('hrcrm_loggedIn');
+
+  localStorage.removeItem('hrcrm_email');
+
+  localStorage.removeItem('hrcrm_token');
+
+  if(activityPollHandle){
+    clearInterval(activityPollHandle);
+  }
+
+  location.reload();
+}
+
+/* INIT */
+
+document.addEventListener('DOMContentLoaded', function(){
+
+  detailsModal = new bootstrap.Modal(
+    document.getElementById('detailsModal')
+  );
+
+  // The "LAST REMARK" floating panel is anchored to the modal while it's
+  // open — once it closes there's nothing left for it to sit beside
+  document.getElementById('detailsModal').addEventListener('hidden.bs.modal', function(){
+    closeRemarkPanel();
+  });
+
+  addModal = new bootstrap.Modal(
+    document.getElementById('addModal')
+  );
+
+  deleteModal = new bootstrap.Modal(
+    document.getElementById('deleteModal')
+  );
+
+  activityModal = new bootstrap.Modal(
+    document.getElementById('activityModal')
+  );
+
+  commonScriptModal = new bootstrap.Modal(
+    document.getElementById('commonScriptModal')
+  );
+
+  calendarModal = new bootstrap.Modal(
+    document.getElementById('calendarModal')
+  );
+
+  eventModal = new bootstrap.Modal(
+    document.getElementById('eventModal')
+  );
+
+  renderBranchChips();
+
+  makeModalResizable(document.getElementById('commonScriptContent'), {
+    baseWidth: 600,
+    baseHeight: 520,
+    minWidth: 340,
+    minHeight: 300,
+    scaleTargets: [
+      { selector: '.script-editable', baseSize: 15 },
+      { selector: '.call-script-title', baseSize: 16 },
+      { selector: '.script-tool-btn', baseSize: 14 }
+    ]
+  });
+
+  // Restore session on refresh so the user isn't forced to log in again
+  if(localStorage.getItem('hrcrm_loggedIn') === 'true'){
+
+    document.getElementById('loginScreen').style.display = 'none';
+
+    document.getElementById('mainApp').style.display = 'block';
+
+    loadData();
+
+    startActivityFeed();
+
+    loadReminders();
+
+    refreshReminderSubButton();
+  }
+});
+
+</script>
+
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+></script>
+
+</body>
+</html>
