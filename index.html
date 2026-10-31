@@ -5,14 +5,20 @@
 
   <base target="_top">
 
-  <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#51e2f5">
+  <script src="config.js"></script>
+  <link rel="manifest" href="manifest.webmanifest?v=2">
+  <meta name="theme-color" content="#0a4c88">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="GG CRM">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+  <link rel="icon" href="favicon-v2.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32-v2.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192-v2.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon-v2.png">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -25,11 +31,6 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
-  >
-
-  <link
-    rel="icon"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2351e2f5'/%3E%3Cstop offset='100%25' stop-color='%239df9ef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='42' font-family='Arial' font-weight='800' font-size='26' fill='%230f172a' text-anchor='middle'%3EGG%3C/text%3E%3C/svg%3E"
   >
 
   <style>
@@ -1354,6 +1355,7 @@
     >
 
     <button
+      id="loginBtn"
       class="dark-btn w-100"
       onclick="login()"
     >
@@ -2092,7 +2094,7 @@
 (function () {
   if (window.google && window.google.script && window.google.script.run) return; // running inside Apps Script
 
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzeb9YEdGfvFsUT7kW87Y90HvGBZIzMZj2PeT8zmk1w6KMxh7L4_PVT74Xe6QFLsEMMJA/exec'; // ends with /exec
+  const API_URL = window.CRM_API_URL || 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'; // set in config.js
 
   function explain(err, status) {
     if (API_URL.indexOf('PASTE_YOUR') === 0) {
@@ -2105,7 +2107,22 @@
     return 'Could not reach the server (' + (err && err.message || 'network error') + '). Check internet and that the web app is deployed with access set to "Anyone".';
   }
 
+  var CACHEABLE = { getHRData: 1, getEvents: 1, getHolidays: 1, getCommonScript: 1, getUpcomingReminders: 1 };
+  function ckey(fn, args) { return 'hrcrm_cache_' + fn + '_' + JSON.stringify(args); }
+
+  // Wake the Apps Script server while the user is still typing their password
+  if (API_URL.indexOf('PASTE_YOUR') !== 0) { try { fetch(API_URL, { mode: 'no-cors' }); } catch (e) {} }
+
+  window.__apiExplain = explain;
+
   function call(fn, args, ok, fail) {
+    var cachedTxt = null;
+    if (CACHEABLE[fn] && localStorage.getItem('hrcrm_token')) {
+      try {
+        cachedTxt = localStorage.getItem(ckey(fn, args));
+        if (cachedTxt && ok) ok(JSON.parse(cachedTxt)); // show last-known data instantly
+      } catch (e) { cachedTxt = null; }
+    }
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, 30000);
     fetch(API_URL, {
@@ -2127,11 +2144,17 @@
         if (fn === 'authenticate' && res.result && res.result.token) {
           localStorage.setItem('hrcrm_token', res.result.token);
         }
+        if (CACHEABLE[fn]) {
+          var fresh = JSON.stringify(res.result);
+          try { localStorage.setItem(ckey(fn, args), fresh); } catch (e) {}
+          if (fresh === cachedTxt) return; // nothing changed, skip re-render
+        }
         if (ok) ok(res.result);
       })
       .catch(function (err) {
         console.error('[API]', fn, err);
         var msg = explain(err);
+        if (cachedTxt && !fail) return;
         if (fail) fail(err);
         else if (fn === 'authenticate' || !window.__apiErrShown) { window.__apiErrShown = true; alert(msg); setTimeout(function () { window.__apiErrShown = false; }, 5000); }
       })
@@ -2195,8 +2218,17 @@ function login(){
 
   const password = document.getElementById('password').value.trim();
 
+  const btn = document.getElementById('loginBtn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Signing in…'; }
+
   google.script.run
+    .withFailureHandler(function(err){
+      if(btn){ btn.disabled = false; btn.textContent = 'Login'; }
+      alert(window.__apiExplain ? window.__apiExplain(err) : 'Login failed. Please try again.');
+    })
     .withSuccessHandler(function(res){
+
+      if(btn){ btn.disabled = false; btn.textContent = 'Login'; }
 
       if(res.success){
 
@@ -3927,6 +3959,8 @@ function logout(){
 
   localStorage.removeItem('hrcrm_token');
 
+  Object.keys(localStorage).forEach(function(k){ if(k.indexOf('hrcrm_cache_')===0) localStorage.removeItem(k); });
+
   if(activityPollHandle){
     clearInterval(activityPollHandle);
   }
@@ -4015,7 +4049,7 @@ document.addEventListener('DOMContentLoaded', function(){
 /* PWA: service worker + install button */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('/sw.js').catch(function (e) { console.warn('SW failed', e); });
+    navigator.serviceWorker.register('sw.js').catch(function (e) { console.warn('SW failed', e); });
   });
 }
 (function () {

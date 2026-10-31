@@ -1,10 +1,10 @@
 /* Service worker: caches the app shell so the app opens instantly and works as an installed app.
    Data calls to Apps Script are never cached. Bump VERSION to force an update. */
-const VERSION = 'v5';
+const VERSION = 'v6';
 const SHELL = `shell-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
-const SHELL_FILES = ['./', 'index.html', 'manifest.webmanifest', 'favicon.ico',
-  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'];
+const SHELL_FILES = ['./', 'index.html', 'manifest.webmanifest', 'favicon-v2.ico',
+  'icons/icon-192-v2.png', 'icons/icon-512-v2.png', 'icons/apple-touch-icon-v2.png', 'icons/favicon-32-v2.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(SHELL).then(c => c.addAll(SHELL_FILES)).then(() => self.skipWaiting()));
@@ -22,7 +22,8 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   const url = new URL(req.url);
 
-  if (req.method !== 'GET') return; // API calls are POST -> straight to network
+  if (req.method !== 'GET') return;
+  if (url.pathname.endsWith('/config.js') || url.pathname.endsWith('/sw.js')) return; // always fresh // API calls are POST -> straight to network
   if (url.hostname.endsWith('script.google.com') || url.hostname.endsWith('googleusercontent.com')) return;
 
   // Page loads: network first, fall back to cached shell when offline
