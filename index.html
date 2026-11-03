@@ -2104,6 +2104,59 @@
   var BOOT_TTL = 20000;   // startup calls made within this window share one request
   var boot = null;
 
+  /* ---- speed debug panel: open the site with ?debug=1 ---- */
+  var DEBUG = /[?&]debug=1(&|$)/.test(location.search);
+  var perf = [];
+  window.__perf = perf;
+  var shownFirst = false;
+
+  function mark(entry) {
+    if (!DEBUG) return;
+    entry.at = Math.round(performance.now());
+    perf.push(entry);
+    renderPerf();
+  }
+
+  function renderPerf() {
+    if (!DEBUG || !document.body) return;
+    var el = document.getElementById('perfPanel');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'perfPanel';
+      el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99999;max-width:min(94vw,440px);max-height:55vh;overflow:auto;' +
+        'background:rgba(15,23,42,.95);color:#e2e8f0;font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;padding:8px 10px;' +
+        'border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35)';
+      document.body.appendChild(el);
+    }
+    var nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || null;
+    var net = perf.filter(function (p) { return p.src === 'network'; });
+    var slow = net.slice().sort(function (a, b) { return b.ms - a.ms; })[0];
+    var sw = (navigator.serviceWorker && navigator.serviceWorker.controller) ? 'active' : 'not active yet';
+    var html = '<div style="font-weight:700;margin-bottom:4px">Speed debug</div>' +
+      '<div>Page ready: ' + (nav ? Math.round(nav.domContentLoadedEventEnd) + ' ms' : 'n/a') +
+      ' &nbsp;|&nbsp; Service worker: ' + sw + '</div>' +
+      '<div>Network requests: ' + net.length + '</div>';
+    if (slow) {
+      html += '<div>Slowest: ' + slow.fn + ' ' + slow.ms + ' ms' +
+        (slow.server != null ? ' (server ' + slow.server + ' ms, rest = network/Apps Script overhead ' + Math.max(0, slow.ms - slow.server) + ' ms)' : '') + '</div>';
+    }
+    html += '<table style="width:100%;border-collapse:collapse;margin-top:6px"><tr style="color:#94a3b8;text-align:left">' +
+      '<th>call</th><th>source</th><th>ms</th><th>server</th><th>at</th></tr>';
+    perf.slice(-18).forEach(function (p) {
+      html += '<tr><td>' + p.fn + '</td><td>' + p.src + '</td><td>' + p.ms + '</td><td>' + (p.server != null ? p.server : '') + '</td><td>' + p.at + '</td></tr>';
+    });
+    html += '</table><div style="margin-top:6px;color:#94a3b8">source: network = real request, cache = instant saved copy, shared = rode along on the startup request. "at" = ms since page opened.</div>' +
+      '<div style="margin-top:6px"><button id="perfCopy" style="margin-right:6px">Copy report</button><button id="perfClose">Close</button></div>';
+    el.innerHTML = html;
+    var c = document.getElementById('perfCopy'), x = document.getElementById('perfClose');
+    if (c) c.onclick = function () {
+      var txt = JSON.stringify({ url: location.href, ua: navigator.userAgent, pageReady: nav && Math.round(nav.domContentLoadedEventEnd), perf: perf }, null, 1);
+      try { navigator.clipboard.writeText(txt); c.textContent = 'Copied'; } catch (e) { c.textContent = 'Copy failed'; }
+    };
+    if (x) x.onclick = function () { el.remove(); DEBUG = false; };
+  }
+  if (DEBUG) document.addEventListener('DOMContentLoaded', renderPerf);
+
   function token() { return localStorage.getItem('hrcrm_token') || ''; }
   function ckey(fn, args) { return 'hrcrm_cache_' + fn + '_' + JSON.stringify(args); }
   function setCache(k, txt) { try { localStorage.setItem(k, txt); localStorage.setItem(k + '_ts', String(Date.now())); } catch (e) {} }
@@ -2128,6 +2181,7 @@
 
   // One network request -> Promise of the result
   function rpc(fn, args) {
+    var t0 = performance.now();
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, 30000);
     return fetch(API_URL, {
@@ -2146,6 +2200,7 @@
           return new Promise(function () {});
         }
         if (res.error) throw new Error(res.error);
+        mark({ fn: fn, src: 'network', ms: Math.round(performance.now() - t0), server: (typeof res.ms === 'number') ? res.ms : null });
         if (fn === 'authenticate' && res.result && res.result.token) {
           localStorage.setItem('hrcrm_token', res.result.token);
           boot = null;
@@ -2187,13 +2242,21 @@
     if (CACHEABLE[fn] && token()) {
       try {
         cachedTxt = localStorage.getItem(k);
-        if (cachedTxt && ok) ok(JSON.parse(cachedTxt)); // show last-known data instantly
+        if (cachedTxt && ok) {
+          ok(JSON.parse(cachedTxt)); // show last-known data instantly
+          mark({ fn: fn, src: 'cache', ms: 0 });
+          if (fn === 'getHRData' && !shownFirst) { shownFirst = true; mark({ fn: '> contacts visible', src: 'from cache', ms: Math.round(performance.now()) }); }
+        }
       } catch (e) { cachedTxt = null; }
       if (cachedTxt && Date.now() - Number(localStorage.getItem(k + '_ts') || 0) < FRESH_TTL) return; // just refreshed
     }
 
-    (viaBoot(fn, args) || rpc(fn, args))
+    var c0 = performance.now();
+    var shared = viaBoot(fn, args);
+    (shared || rpc(fn, args))
       .then(function (result) {
+        if (shared) mark({ fn: fn, src: 'shared', ms: Math.round(performance.now() - c0) });
+        if (fn === 'getHRData' && !shownFirst) { shownFirst = true; mark({ fn: '> contacts visible', src: 'from server', ms: Math.round(performance.now()) }); }
         if (CACHEABLE[fn]) {
           var fresh = JSON.stringify(result);
           setCache(k, fresh);
