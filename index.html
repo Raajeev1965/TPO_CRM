@@ -2094,11 +2094,26 @@
 (function () {
   if (window.google && window.google.script && window.google.script.run) return; // running inside Apps Script
 
-  const API_URL = window.CRM_API_URL || 'https://script.google.com/macros/s/AKfycbzeb9YEdGfvFsUT7kW87Y90HvGBZIzMZj2PeT8zmk1w6KMxh7L4_PVT74Xe6QFLsEMMJA/exec'; // set in config.js
+  const API_URL = window.CRM_API_URL || 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'; // set in config.js
 
-  function explain(err, status) {
+  var READS = { authenticate: 1, getBootstrap: 1, getHRData: 1, getEvents: 1, getHolidays: 1, getCommonScript: 1,
+                getUpcomingReminders: 1, getRecentActivity: 1, getRemarksForRow: 1, isSubscribedToReminders: 1 };
+  var CACHEABLE = { getHRData: 1, getEvents: 1, getHolidays: 1, getCommonScript: 1, getUpcomingReminders: 1 };
+  var BOOT_FNS = { getHRData: 1, getUpcomingReminders: 1, getRecentActivity: 1, isSubscribedToReminders: 1 };
+  var FRESH_TTL = 8000;   // a cached list this young is trusted without asking the server again
+  var BOOT_TTL = 20000;   // startup calls made within this window share one request
+  var boot = null;
+
+  function token() { return localStorage.getItem('hrcrm_token') || ''; }
+  function ckey(fn, args) { return 'hrcrm_cache_' + fn + '_' + JSON.stringify(args); }
+  function setCache(k, txt) { try { localStorage.setItem(k, txt); localStorage.setItem(k + '_ts', String(Date.now())); } catch (e) {} }
+  function clearCaches() {
+    Object.keys(localStorage).forEach(function (k) { if (k.indexOf('hrcrm_cache_') === 0) localStorage.removeItem(k); });
+  }
+
+  function explain(err) {
     if (API_URL.indexOf('PASTE_YOUR') === 0) {
-      return 'API_URL is not set in index.html. Paste your Apps Script web app URL (ending in /exec).';
+      return 'API_URL is not set. Open config.js and paste your Apps Script web app URL (ending in /exec).';
     }
     if (err && err.name === 'AbortError') return 'The server took too long to respond (30s). Try again.';
     if (err && err.code === 'NOT_JSON') {
@@ -2106,29 +2121,19 @@
     }
     return 'Could not reach the server (' + (err && err.message || 'network error') + '). Check internet and that the web app is deployed with access set to "Anyone".';
   }
-
-  var CACHEABLE = { getHRData: 1, getEvents: 1, getHolidays: 1, getCommonScript: 1, getUpcomingReminders: 1 };
-  function ckey(fn, args) { return 'hrcrm_cache_' + fn + '_' + JSON.stringify(args); }
+  window.__apiExplain = explain;
 
   // Wake the Apps Script server while the user is still typing their password
   if (API_URL.indexOf('PASTE_YOUR') !== 0) { try { fetch(API_URL, { mode: 'no-cors' }); } catch (e) {} }
 
-  window.__apiExplain = explain;
-
-  function call(fn, args, ok, fail) {
-    var cachedTxt = null;
-    if (CACHEABLE[fn] && localStorage.getItem('hrcrm_token')) {
-      try {
-        cachedTxt = localStorage.getItem(ckey(fn, args));
-        if (cachedTxt && ok) ok(JSON.parse(cachedTxt)); // show last-known data instantly
-      } catch (e) { cachedTxt = null; }
-    }
+  // One network request -> Promise of the result
+  function rpc(fn, args) {
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, 30000);
-    fetch(API_URL, {
+    return fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids a CORS preflight
-      body: JSON.stringify({ fn: fn, args: args, token: localStorage.getItem('hrcrm_token') || '' }),
+      body: JSON.stringify({ fn: fn, args: args, token: token() }),
       signal: ctrl.signal
     })
       .then(function (r) { return r.text(); })
@@ -2138,27 +2143,73 @@
         if (res.error === 'unauthorized') {
           Object.keys(localStorage).forEach(function (k) { if (k.indexOf('hrcrm_') === 0) localStorage.removeItem(k); });
           location.reload();
-          return;
+          return new Promise(function () {});
         }
         if (res.error) throw new Error(res.error);
         if (fn === 'authenticate' && res.result && res.result.token) {
           localStorage.setItem('hrcrm_token', res.result.token);
+          boot = null;
         }
+        if (!READS[fn]) {
+          // a write happened: drop every cached read, then keep the fresh contact list the server sent back
+          clearCaches();
+          if (res.fresh && res.fresh.getHRData) setCache(ckey('getHRData', []), JSON.stringify(res.fresh.getHRData));
+        }
+        return res.result;
+      })
+      .finally(function () { clearTimeout(timer); });
+  }
+
+  function bootArgsOk(fn, args) {
+    if (fn === 'getRecentActivity') return args.length === 1 && args[0] === 50;
+    if (fn === 'isSubscribedToReminders') return args.length === 1 && args[0] === localStorage.getItem('hrcrm_email');
+    return args.length === 0;
+  }
+
+  // Startup calls (contacts, activity, reminders, subscription) share ONE request
+  function viaBoot(fn, args) {
+    if (!BOOT_FNS[fn] || !token() || !bootArgsOk(fn, args)) return null;
+    var now = Date.now();
+    if (!boot) {
+      boot = { t: now, served: {}, p: rpc('getBootstrap', [localStorage.getItem('hrcrm_email') || '', 50]) };
+      boot.p.catch(function () {});
+    }
+    if (now - boot.t > BOOT_TTL || boot.served[fn]) return null;
+    boot.served[fn] = true;
+    return boot.p.then(function (b) {
+      return (b && Object.prototype.hasOwnProperty.call(b, fn)) ? b[fn] : rpc(fn, args);
+    }, function () { return rpc(fn, args); });
+  }
+
+  function call(fn, args, ok, fail) {
+    var k = ckey(fn, args), cachedTxt = null;
+
+    if (CACHEABLE[fn] && token()) {
+      try {
+        cachedTxt = localStorage.getItem(k);
+        if (cachedTxt && ok) ok(JSON.parse(cachedTxt)); // show last-known data instantly
+      } catch (e) { cachedTxt = null; }
+      if (cachedTxt && Date.now() - Number(localStorage.getItem(k + '_ts') || 0) < FRESH_TTL) return; // just refreshed
+    }
+
+    (viaBoot(fn, args) || rpc(fn, args))
+      .then(function (result) {
         if (CACHEABLE[fn]) {
-          var fresh = JSON.stringify(res.result);
-          try { localStorage.setItem(ckey(fn, args), fresh); } catch (e) {}
+          var fresh = JSON.stringify(result);
+          setCache(k, fresh);
           if (fresh === cachedTxt) return; // nothing changed, skip re-render
         }
-        if (ok) ok(res.result);
+        if (ok) ok(result);
       })
       .catch(function (err) {
         console.error('[API]', fn, err);
-        var msg = explain(err);
         if (cachedTxt && !fail) return;
         if (fail) fail(err);
-        else if (fn === 'authenticate' || !window.__apiErrShown) { window.__apiErrShown = true; alert(msg); setTimeout(function () { window.__apiErrShown = false; }, 5000); }
-      })
-      .finally(function () { clearTimeout(timer); });
+        else if (fn === 'authenticate' || !window.__apiErrShown) {
+          window.__apiErrShown = true; alert(explain(err));
+          setTimeout(function () { window.__apiErrShown = false; }, 5000);
+        }
+      });
   }
 
   function make(ok, fail) {
@@ -3285,8 +3336,7 @@ function saveDetails(){
 
   const nextDate = document.getElementById('nextDate').value;
 
-  google.script.run.updateHRDetails(rowId, detailsObj, localStorage.getItem('hrcrm_email'));
-
+  // One request saves details + remark and returns the refreshed list
   google.script.run
     .withSuccessHandler(function(){
 
@@ -3295,7 +3345,7 @@ function saveDetails(){
       loadData();
 
     })
-    .updateHRRemark(rowId,remark,nextDate,localStorage.getItem('hrcrm_email'));
+    .saveContactDetails(rowId, detailsObj, remark, nextDate, localStorage.getItem('hrcrm_email'));
 }
 
 /* FILTER */
@@ -3377,7 +3427,21 @@ function startActivityFeed(){
     clearInterval(activityPollHandle);
   }
 
-  activityPollHandle = setInterval(loadActivityBadge, 60000);
+  // every 3 minutes, and never while the tab is hidden
+  activityPollHandle = setInterval(function(){
+    if(!document.hidden){ window.__lastActPoll = Date.now(); loadActivityBadge(); }
+  }, 180000);
+
+  if(!window.__actVisBound){
+    window.__actVisBound = true;
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden && localStorage.getItem('hrcrm_loggedIn') === 'true' &&
+         Date.now() - (window.__lastActPoll || 0) > 60000){
+        window.__lastActPoll = Date.now();
+        loadActivityBadge();
+      }
+    });
+  }
 }
 
 // Fetch recent activity and update the unread badge (doesn't open the panel)
