@@ -16,6 +16,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32-v2.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192-v2.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon-v2.png">
+  <link rel="preconnect" href="https://script.google.com" crossorigin>
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2096,10 +2098,10 @@
 
   const API_URL = window.CRM_API_URL || 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'; // set in config.js
 
-  var READS = { authenticate: 1, getBootstrap: 1, getHRData: 1, getEvents: 1, getHolidays: 1, getCommonScript: 1,
+  var READS = { authenticate: 1, getBootstrap: 1, getExtras: 1, getHRData: 1, getEvents: 1, getHolidays: 1, getCommonScript: 1,
                 getUpcomingReminders: 1, getRecentActivity: 1, getRemarksForRow: 1, isSubscribedToReminders: 1 };
-  var CACHEABLE = { getHRData: 1, getEvents: 1, getHolidays: 1, getCommonScript: 1, getUpcomingReminders: 1 };
-  var BOOT_FNS = { getHRData: 1, getUpcomingReminders: 1, getRecentActivity: 1, isSubscribedToReminders: 1 };
+  var CACHEABLE = { getHRData: 1, getEvents: 1, getHolidays: 1, getCommonScript: 1, getUpcomingReminders: 1, getRemarksForRow: 1 };
+  var BOOT_FNS = { getUpcomingReminders: 1, getRecentActivity: 1, isSubscribedToReminders: 1 }; // contacts load separately, in parallel
   var FRESH_TTL = 8000;   // a cached list this young is trusted without asking the server again
   var BOOT_TTL = 20000;   // startup calls made within this window share one request
   var boot = null;
@@ -2123,7 +2125,7 @@
     if (!el) {
       el = document.createElement('div');
       el.id = 'perfPanel';
-      el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99999;max-width:min(94vw,440px);max-height:55vh;overflow:auto;' +
+      el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99999;max-width:min(96vw,520px);max-height:55vh;overflow:auto;' +
         'background:rgba(15,23,42,.95);color:#e2e8f0;font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;padding:8px 10px;' +
         'border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35)';
       document.body.appendChild(el);
@@ -2141,9 +2143,10 @@
         (slow.server != null ? ' (server ' + slow.server + ' ms, rest = network/Apps Script overhead ' + Math.max(0, slow.ms - slow.server) + ' ms)' : '') + '</div>';
     }
     html += '<table style="width:100%;border-collapse:collapse;margin-top:6px"><tr style="color:#94a3b8;text-align:left">' +
-      '<th>call</th><th>source</th><th>ms</th><th>server</th><th>at</th></tr>';
+      '<th>call</th><th>source</th><th>ms</th><th>server</th><th>KB</th><th>at</th></tr>';
     perf.slice(-18).forEach(function (p) {
-      html += '<tr><td>' + p.fn + '</td><td>' + p.src + '</td><td>' + p.ms + '</td><td>' + (p.server != null ? p.server : '') + '</td><td>' + p.at + '</td></tr>';
+      html += '<tr><td>' + p.fn + '</td><td>' + p.src + '</td><td>' + p.ms + '</td><td>' + (p.server != null ? p.server : '') + '</td><td>' + (p.kb != null ? p.kb : '') + '</td><td>' + p.at + '</td></tr>';
+      if (p.detail) html += '<tr><td colspan="6" style="color:#94a3b8;padding:0 0 3px 10px">&#8627; server: ' + p.detail + ' (ms)</td></tr>';
     });
     html += '</table><div style="margin-top:6px;color:#94a3b8">source: network = real request, cache = instant saved copy, shared = rode along on the startup request. "at" = ms since page opened.</div>' +
       '<div style="margin-top:6px"><button id="perfCopy" style="margin-right:6px">Copy report</button><button id="perfClose">Close</button></div>';
@@ -2159,7 +2162,19 @@
 
   function token() { return localStorage.getItem('hrcrm_token') || ''; }
   function ckey(fn, args) { return 'hrcrm_cache_' + fn + '_' + JSON.stringify(args); }
-  function setCache(k, txt) { try { localStorage.setItem(k, txt); localStorage.setItem(k + '_ts', String(Date.now())); } catch (e) {} }
+  function setCache(k, txt) {
+    try { localStorage.setItem(k, txt); localStorage.setItem(k + '_ts', String(Date.now())); } catch (e) {}
+    if (k.indexOf('hrcrm_cache_getRemarksForRow_') === 0) trimRemarkCache();
+  }
+  // keep at most 40 saved remark lists (newest kept)
+  function trimRemarkCache() {
+    try {
+      var keys = Object.keys(localStorage).filter(function (x) { return x.indexOf('hrcrm_cache_getRemarksForRow_') === 0 && !/_ts$/.test(x); });
+      if (keys.length <= 40) return;
+      keys.sort(function (a, b) { return Number(localStorage.getItem(a + '_ts') || 0) - Number(localStorage.getItem(b + '_ts') || 0); });
+      keys.slice(0, keys.length - 40).forEach(function (x) { localStorage.removeItem(x); localStorage.removeItem(x + '_ts'); });
+    } catch (e) {}
+  }
   function clearCaches() {
     Object.keys(localStorage).forEach(function (k) { if (k.indexOf('hrcrm_cache_') === 0) localStorage.removeItem(k); });
   }
@@ -2200,7 +2215,11 @@
           return new Promise(function () {});
         }
         if (res.error) throw new Error(res.error);
-        mark({ fn: fn, src: 'network', ms: Math.round(performance.now() - t0), server: (typeof res.ms === 'number') ? res.ms : null });
+        var det = [];
+        if (res.t) { ['tok', 'run', 'fresh'].forEach(function (n) { if (res.t[n] != null) det.push(n + ' ' + res.t[n]); }); }
+        if (res.result && res.result._t) { Object.keys(res.result._t).forEach(function (n) { det.push(n + ' ' + res.result._t[n]); }); }
+        mark({ fn: fn, src: 'network', ms: Math.round(performance.now() - t0), server: (typeof res.ms === 'number') ? res.ms : null,
+               kb: Math.round(txt.length / 102.4) / 10, detail: det.join(', ') });
         if (fn === 'authenticate' && res.result && res.result.token) {
           localStorage.setItem('hrcrm_token', res.result.token);
           boot = null;
@@ -2226,7 +2245,7 @@
     if (!BOOT_FNS[fn] || !token() || !bootArgsOk(fn, args)) return null;
     var now = Date.now();
     if (!boot) {
-      boot = { t: now, served: {}, p: rpc('getBootstrap', [localStorage.getItem('hrcrm_email') || '', 50]) };
+      boot = { t: now, served: {}, p: rpc('getExtras', [localStorage.getItem('hrcrm_email') || '', 50]) };
       boot.p.catch(function () {});
     }
     if (now - boot.t > BOOT_TTL || boot.served[fn]) return null;
