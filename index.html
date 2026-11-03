@@ -2098,9 +2098,9 @@
 
   const API_URL = window.CRM_API_URL || 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'; // set in config.js
 
-  var READS = { authenticate: 1, getBootstrap: 1, getExtras: 1, getHRData: 1, getEvents: 1, getHolidays: 1, getCommonScript: 1,
+  var READS = { authenticate: 1, getBootstrap: 1, getExtras: 1, getAllRemarks: 1, getHRData: 1, getEvents: 1, getHolidays: 1, getCommonScript: 1,
                 getUpcomingReminders: 1, getRecentActivity: 1, getRemarksForRow: 1, isSubscribedToReminders: 1 };
-  var CACHEABLE = { getHRData: 1, getEvents: 1, getHolidays: 1, getCommonScript: 1, getUpcomingReminders: 1, getRemarksForRow: 1 };
+  var CACHEABLE = { getHRData: 1, getEvents: 1, getHolidays: 1, getCommonScript: 1, getUpcomingReminders: 1 };
   var BOOT_FNS = { getUpcomingReminders: 1, getRecentActivity: 1, isSubscribedToReminders: 1 }; // contacts load separately, in parallel
   var FRESH_TTL = 8000;   // a cached list this young is trusted without asking the server again
   var BOOT_TTL = 20000;   // startup calls made within this window share one request
@@ -2162,19 +2162,7 @@
 
   function token() { return localStorage.getItem('hrcrm_token') || ''; }
   function ckey(fn, args) { return 'hrcrm_cache_' + fn + '_' + JSON.stringify(args); }
-  function setCache(k, txt) {
-    try { localStorage.setItem(k, txt); localStorage.setItem(k + '_ts', String(Date.now())); } catch (e) {}
-    if (k.indexOf('hrcrm_cache_getRemarksForRow_') === 0) trimRemarkCache();
-  }
-  // keep at most 40 saved remark lists (newest kept)
-  function trimRemarkCache() {
-    try {
-      var keys = Object.keys(localStorage).filter(function (x) { return x.indexOf('hrcrm_cache_getRemarksForRow_') === 0 && !/_ts$/.test(x); });
-      if (keys.length <= 40) return;
-      keys.sort(function (a, b) { return Number(localStorage.getItem(a + '_ts') || 0) - Number(localStorage.getItem(b + '_ts') || 0); });
-      keys.slice(0, keys.length - 40).forEach(function (x) { localStorage.removeItem(x); localStorage.removeItem(x + '_ts'); });
-    } catch (e) {}
-  }
+  function setCache(k, txt) { try { localStorage.setItem(k, txt); localStorage.setItem(k + '_ts', String(Date.now())); } catch (e) {} }
   function clearCaches() {
     Object.keys(localStorage).forEach(function (k) { if (k.indexOf('hrcrm_cache_') === 0) localStorage.removeItem(k); });
   }
@@ -2228,6 +2216,7 @@
           // a write happened: drop every cached read, then keep the fresh contact list the server sent back
           clearCaches();
           if (res.fresh && res.fresh.getHRData) setCache(ckey('getHRData', []), JSON.stringify(res.fresh.getHRData));
+          onWrite(fn, args);
         }
         return res.result;
       })
@@ -2247,6 +2236,7 @@
     if (!boot) {
       boot = { t: now, served: {}, p: rpc('getExtras', [localStorage.getItem('hrcrm_email') || '', 50]) };
       boot.p.catch(function () {});
+      schedulePreload(3500);
     }
     if (now - boot.t > BOOT_TTL || boot.served[fn]) return null;
     boot.served[fn] = true;
@@ -2255,7 +2245,95 @@
     }, function () { return rpc(fn, args); });
   }
 
+  /* ---- remarks: kept on the device so opening a contact needs no request ---- */
+  var RKEY = 'hrcrm_remarks_all';
+  var REMARK_TTL = 10 * 60 * 1000;   // entries younger than this are trusted as-is
+  var remarkStore = null;            // { ts, complete, e: { uuid: { t, l: [top 5 remarks] } } }
+  var dirty = {};                    // contacts whose remarks changed and must be re-fetched
+  var epoch = 0;                     // bumps on every write, so a slow preload can't overwrite newer data
+  var preloadTimer = null, preloading = false;
+
+  function rs() {
+    if (remarkStore) return remarkStore;
+    try { remarkStore = JSON.parse(localStorage.getItem(RKEY) || 'null'); } catch (e) { remarkStore = null; }
+    if (!remarkStore || !remarkStore.e) remarkStore = { ts: 0, complete: false, e: {} };
+    return remarkStore;
+  }
+  function rsSave() {
+    try {
+      var s = JSON.stringify(remarkStore);
+      if (s.length < 1500000) localStorage.setItem(RKEY, s); else localStorage.removeItem(RKEY); // too big: memory only
+    } catch (e) {}
+  }
+  function remarkLookup(uuid) {
+    var s = rs(), ent = s.e[uuid];
+    if (ent) return { list: ent.l, fresh: Date.now() - ent.t < REMARK_TTL };
+    if (s.complete) return { list: [], fresh: Date.now() - s.ts < REMARK_TTL }; // nothing stored = no remarks
+    return null;
+  }
+  function refreshRemarks(u) {
+    rpc('getRemarksForRow', [u]).then(function (list) {
+      rs().e[u] = { t: Date.now(), l: (list || []).slice(0, 5) }; rsSave(); delete dirty[u];
+    }).catch(function () {});
+  }
+  function onWrite(fn, args) {
+    epoch++;
+    if (fn === 'updateHRRemark' || fn === 'saveContactDetails') {
+      var u = String(args[0]); dirty[u] = true; refreshRemarks(u);
+    } else if (fn === 'deleteHR') {
+      delete rs().e[String(args[0])]; rsSave();
+    } else if (fn === 'addHR' || fn === 'editRemarkLog') {
+      remarkStore = { ts: 0, complete: false, e: {} }; rsSave(); schedulePreload(3000);
+    }
+  }
+  function schedulePreload(delay) {
+    if (!token() || preloading) return;
+    clearTimeout(preloadTimer);
+    preloadTimer = setTimeout(runPreload, delay);
+  }
+  function runPreload() {
+    var s = rs();
+    if (s.complete && Date.now() - s.ts < REMARK_TTL || preloading || !token()) return;
+    preloading = true;
+    var e0 = epoch;
+    rpc('getAllRemarks', [5]).then(function (map) {
+      if (epoch !== e0) { schedulePreload(3000); return; } // something changed meanwhile: try again
+      var e = {}, now = Date.now();
+      Object.keys(map || {}).forEach(function (u) { e[u] = { t: now, l: map[u] }; });
+      remarkStore = { ts: now, complete: true, e: e }; dirty = {}; rsSave();
+    }).catch(function () {}).finally(function () { preloading = false; });
+  }
+  window.__crmReset = function () { remarkStore = null; dirty = {}; boot = null; clearTimeout(preloadTimer); };
+
+  function failure(fn, err, hadCache, fail) {
+    console.error('[API]', fn, err);
+    if (hadCache && !fail) return;
+    if (fail) fail(err);
+    else if (fn === 'authenticate' || !window.__apiErrShown) {
+      window.__apiErrShown = true; alert(explain(err));
+      setTimeout(function () { window.__apiErrShown = false; }, 5000);
+    }
+  }
+
+  function callRemarks(uuid, args, ok, fail) {
+    var hit = dirty[uuid] ? null : remarkLookup(uuid), shown = null;
+    if (hit) {
+      shown = JSON.stringify(hit.list);
+      try { if (ok) ok(hit.list); } catch (e) {}
+      mark({ fn: 'getRemarksForRow', src: 'cache', ms: 0 });
+      if (hit.fresh) return; // recent enough, no request needed
+    }
+    rpc('getRemarksForRow', args).then(function (list) {
+      var top = (list || []).slice(0, 5);
+      rs().e[uuid] = { t: Date.now(), l: top }; rsSave(); delete dirty[uuid];
+      if (hit && JSON.stringify(top) === shown) return;
+      if (ok) ok(list);
+    }).catch(function (err) { failure('getRemarksForRow', err, !!hit, fail); });
+  }
+
   function call(fn, args, ok, fail) {
+    if (fn === 'getRemarksForRow' && args.length === 1 && token()) return callRemarks(String(args[0]), args, ok, fail);
+
     var k = ckey(fn, args), cachedTxt = null;
 
     if (CACHEABLE[fn] && token()) {
@@ -4105,7 +4183,9 @@ function logout(){
 
   localStorage.removeItem('hrcrm_token');
 
-  Object.keys(localStorage).forEach(function(k){ if(k.indexOf('hrcrm_cache_')===0) localStorage.removeItem(k); });
+  Object.keys(localStorage).forEach(function(k){ if(k.indexOf('hrcrm_cache_')===0 || k.indexOf('hrcrm_remarks_')===0) localStorage.removeItem(k); });
+
+  if(window.__crmReset) window.__crmReset();
 
   if(activityPollHandle){
     clearInterval(activityPollHandle);
